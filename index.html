@@ -11,10 +11,14 @@
       --muted: #94a3b8;
       --text: #e5e7eb;
       --accent: #38bdf8;
-      --accent-2: #22c55e;
+      --accent2: #22c55e;
+      --accent2-soft: #86efac;
       --border: #1f2937;
+      --warn: #fbbf24;
+      --ok: #86efac;
     }
     * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
       margin: 0;
       font-family: Inter, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -23,21 +27,21 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      padding: 24px;
+      align-items: stretch;
+      padding: 12px;
     }
     .app {
-      width: 100%;
-      max-width: 920px;
-      background: rgba(17, 24, 39, 0.96);
+      width: min(100vw - 24px, 1700px);
+      min-height: calc(100vh - 24px);
+      background: rgba(17, 24, 39, 0.97);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px;
+      border-radius: 24px;
+      padding: 22px 26px 26px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     }
     h1, h2, h3, p { margin-top: 0; }
-    h1 { font-size: 2rem; margin-bottom: 8px; }
-    h2 { font-size: 1.35rem; margin-bottom: 12px; }
+    h1 { font-size: 2.2rem; margin-bottom: 8px; }
+    h2 { font-size: 2rem; margin-bottom: 12px; }
     .muted { color: var(--muted); }
     .card {
       border: 1px solid var(--border);
@@ -48,19 +52,33 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin: 18px 0;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 14px;
+      margin: 0;
     }
     .stat {
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
+      border-radius: 18px;
+      padding: 18px;
       background: rgba(255,255,255,0.03);
+      min-height: 108px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .stat-label { color: var(--muted); font-size: 0.9rem; }
-    .stat-value { font-size: 1.4rem; font-weight: 700; margin-top: 6px; }
-    ul, ol { line-height: 1.6; }
+    .stat-label { color: var(--muted); font-size: 1rem; }
+    .stat-value { font-size: 2.1rem; font-weight: 800; margin-top: 6px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .language-switch { margin-left: auto; }
+    .card ul { line-height: 1.6; }
     button {
       appearance: none;
       border: none;
@@ -83,62 +101,8 @@
       border: 1px solid var(--border);
     }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
-    }
-    .language-switch { margin-left: auto; }
-    .progress-shell {
-      width: 260px;
-      height: 18px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.05);
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent-2), #86efac);
-      transition: width 0.12s linear;
-    }
-    .numeric-progress {
-      font-size: 1.2rem;
-      font-weight: 800;
-      min-width: 110px;
-      text-align: right;
-    }
-    .stimulus {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 220px;
-      border: 1px dashed #334155;
-      border-radius: 22px;
-      margin: 22px 0;
-      background: rgba(255,255,255,0.02);
-    }
-    .arrow {
-      font-size: 7rem;
-      line-height: 1;
-      user-select: none;
-    }
-    .big { font-size: 2.2rem; font-weight: 800; }
-    .kbd {
-      display: inline-block;
-      padding: 2px 8px;
-      border: 1px solid #475569;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.04);
-      font-family: monospace;
-    }
     input[type="text"] {
-      width: 260px;
+      width: 280px;
       max-width: 100%;
       padding: 12px 14px;
       border-radius: 12px;
@@ -147,9 +111,259 @@
       color: var(--text);
       font-size: 1rem;
     }
-    .footer-note { color: var(--muted); font-size: 0.9rem; margin-top: 16px; }
-    .success { color: #86efac; }
-    .warning { color: #fbbf24; }
+    .main-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: calc(100vh - 180px);
+    }
+    .fullscreen-flow {
+      min-height: calc(100vh - 120px);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .transition-screen {
+      min-height: calc(100vh - 160px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0 0;
+    }
+    .transition-panel {
+      width: 100%;
+      min-height: min(72vh, 760px);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.02) 100%);
+      padding: clamp(28px, 4vw, 56px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 28px;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.24);
+    }
+    .transition-copy {
+      max-width: 1100px;
+    }
+    .transition-kicker {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+    }
+    .transition-title {
+      font-size: clamp(2.4rem, 5vw, 4.6rem);
+      line-height: 1.06;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+    .transition-lead {
+      font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+      color: #dbe4f0;
+      margin: 0;
+      line-height: 1.65;
+      max-width: 920px;
+    }
+    .transition-info {
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 22px;
+      background: rgba(255,255,255,0.035);
+      padding: clamp(20px, 2.4vw, 30px);
+      max-width: 1120px;
+    }
+    .transition-info p {
+      margin: 0;
+      font-size: clamp(1rem, 1.5vw, 1.25rem);
+      line-height: 1.7;
+    }
+    .transition-actions {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 14px;
+      margin-top: 4px;
+    }
+    .transition-actions button {
+      min-width: 220px;
+      min-height: 68px;
+      font-size: 1.25rem;
+      border-radius: 18px;
+    }
+    .feedback-panel {
+      width: 100%;
+      border: 1px solid rgba(56, 189, 248, 0.32);
+      border-radius: 20px;
+      padding: 20px 24px;
+      background: rgba(255,255,255,0.03);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.16);
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .feedback-label {
+      color: #dbeafe;
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .completed-big {
+      font-size: min(6vw, 4rem);
+      line-height: 1.1;
+      font-weight: 900;
+      color: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+    }
+    .completed-answer-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 10px auto 6px;
+      min-height: 112px;
+      width: 100%;
+      text-align: center;
+    }
+    .completed-answer-top .done-number {
+      font-size: min(10vw, 5.6rem);
+      line-height: 0.95;
+      font-weight: 900;
+      color: var(--accent2-soft);
+      text-shadow: 0 0 18px rgba(34, 197, 94, 0.18);
+    }
+    .completed-answer-top .total-number {
+      font-size: min(2.8vw, 1.35rem);
+      line-height: 1.1;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+    }
+    .progress-shell {
+      width: 100%;
+      height: 48px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent2-soft));
+      transition: width 0.12s linear;
+    }
+    .stimulus {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex: 1 1 auto;
+      min-height: min(48vh, 560px);
+      border: 1px dashed #334155;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.02);
+      margin: 0;
+    }
+    .arrow {
+      font-size: min(24vw, 14rem);
+      line-height: 1;
+      user-select: none;
+    }
+    .success { color: var(--ok); }
+    .warning { color: var(--warn); }
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .leaderboard-table th,
+    .leaderboard-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    .leaderboard-table th { color: var(--muted); font-weight: 600; }
+    .pill {
+      display: inline-block;
+      font-size: 0.85rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .touchpad-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .touchpad {
+      display: grid;
+      grid-template-columns: 88px 88px 88px;
+      grid-template-rows: 88px 88px;
+      gap: 8px;
+      align-items: center;
+      justify-items: center;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .touchpad-empty {
+      width: 88px;
+      height: 88px;
+    }
+    .touch-btn {
+      width: 88px;
+      height: 88px;
+      border-radius: 14px;
+      border: 1px solid #cfd4db;
+      background: linear-gradient(180deg, #fafafa 0%, #dfe3e8 100%);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.95), inset 0 -2px 6px rgba(0,0,0,0.08), 0 6px 16px rgba(0,0,0,0.18);
+      color: #1f2937;
+      font-size: 2rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .touch-btn:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.12), 0 3px 8px rgba(0,0,0,0.16);
+    }
+    .milestone-banner {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      background: rgba(56, 189, 248, 0.12);
+      color: #dbeafe;
+      font-weight: 800;
+      animation: milestoneFlash 0.45s ease-in-out 2;
+      text-align: center;
+      margin: 0;
+      font-size: 1.15rem;
+    }
+    @keyframes milestoneFlash {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(1.02); }
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .app { width: calc(100vw - 20px); min-height: calc(100vh - 20px); padding: 18px; }
+      .stat { min-height: 92px; }
+      .stat-value { font-size: 1.8rem; }
+      .completed-answer-top .done-number { font-size: 3.6rem; }
+      .completed-answer-top .total-number { font-size: 1.1rem; }
+      .stimulus { min-height: 320px; }
+      .arrow { font-size: min(34vw, 9rem); }
+      .transition-screen { min-height: calc(100vh - 150px); padding-top: 4px; }
+      .transition-panel { min-height: calc(100vh - 210px); border-radius: 22px; padding: 24px 20px; }
+      .transition-actions { justify-content: stretch; }
+      .transition-actions button { width: 100%; min-width: 0; min-height: 60px; font-size: 1.1rem; }
+    }
   </style>
 </head>
 <body>
@@ -163,40 +377,47 @@
       blockTrials: 100,
       interTrialMs: 300,
       countdownSeconds: 3,
+      autosaveEveryTrials: 10,
+      googleScriptUrl: '',
+      enableUpload: false,
       stimuli: [
         { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown' },
         { key: 'ArrowDown', symbol: '↓', correct: 'ArrowUp' },
         { key: 'ArrowLeft', symbol: '←', correct: 'ArrowRight' },
-        { key: 'ArrowRight', symbol: '→', correct: 'ArrowLeft' },
-      ],
-      // Replace this with your deployed Google Apps Script Web App URL.
-      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbzUy_dQjDmnCAurU2YteEHn89CTo_PLHeoiv7uqGHjGK4TcotySFn7NgXpxoP_8-GIr/exec',
-      enableUpload: true,
+        { key: 'ArrowRight', symbol: '→', correct: 'ArrowLeft' }
+      ]
     };
 
     const I18N = {
       en: {
         study: 'MIE286 Study',
         title: 'Direction Matching Game',
-        introLead: 'This study compares two ways of showing task progress: a numeric progress display and a visual progress bar.',
+        introLead: 'This study compares a numeric progress display and a visual progress bar while you complete an opposite-arrow task.',
         readBefore: 'Please read before continuing',
         bullets: [
-          'You will complete a short practice round first, then two main blocks.',
-          'On every trial, press the opposite arrow key of the arrow shown on screen.',
-          'There are two feedback styles: Numeric Progress and Progress Bar.',
-          'Reaction time and accuracy are recorded automatically.',
-          'Only your own summary will be shown at the end.'
+          'You will complete 10 practice trials, then 2 main blocks.',
+          'Each main block contains 100 trials, for a total of 200 main-task trials.',
+          'The full session takes about 8 minutes.',
+          'Press the opposite arrow key of the arrow shown on screen.',
+          'The two feedback styles are Numeric Progress and Progress Bar.',
+          'Your reaction time and accuracy will be recorded automatically.',
+          'If you agree, your nickname may appear on a leaderboard shown only to participants who opted in.'
         ],
-        consent: 'I agree to participate anonymously for the MIE286 course project.',
+        consent: 'I agree to participate anonymously for the MIE286 course project. (Required to start)',
+        soundConsent: 'Enable optional sound effects to make the task feel more interactive.',
+        leaderboardConsent: 'I agree to join the optional leaderboard. Optional: if unchecked, you will not join the leaderboard and will not see leaderboard results.',
+        soundHint: 'If enabled, each response uses the same soft key-tap sound. Every 20 trials, an extra gentle bingo sound is added.',
+        nicknameLabel: 'Nickname (optional)',
+        nicknamePlaceholder: 'Enter a nickname or leave blank',
         participantLabel: 'Participant ID',
-        participantPlaceholder: 'Enter your participant ID',
+        participantPlaceholder: 'Leave blank to auto-generate an ID',
         continue: 'Continue to Practice →',
         warmup: 'Warm-up Round',
         practiceFirst: 'Practice first',
         practiceDesc: 'You will complete 10 practice trials. These do not count toward the final results.',
         rule: 'Rule:',
         ruleText: 'if you see ↑, press ↓. If you see ←, press →, and so on.',
-        cogLoad: 'This opposite-response rule adds some cognitive load so the task is not too easy.',
+        cogLoad: 'This opposite-response rule adds cognitive load so the task is not too easy.',
         startPractice: 'Start Practice →',
         practiceRound: 'Practice Round',
         block: 'Block',
@@ -207,10 +428,9 @@
         bar: 'Progress Bar',
         numericDisplay: 'Completed',
         barDisplay: 'Task Progress',
-        trial: 'Trial',
-        answered: 'Answered',
-        correct: 'Correct',
         accuracy: 'Accuracy',
+        meanRT: 'Mean RT',
+        elapsed: 'Elapsed',
         pressOpposite: 'Press the opposite arrow key.',
         practiceComplete: 'Practice complete. Next, you will start the first experimental block.',
         orderText: 'Your main task order is',
@@ -220,31 +440,47 @@
         thankYou: 'Thank you for participating',
         complete: 'Test Complete',
         yourResults: 'Your personal results',
-        meanRT: 'Mean RT',
+        uploaded: 'Upload status',
         uploadStatusReady: 'Upload is not connected yet. Add your Google Apps Script URL to enable automatic saving.',
         uploadStatusSuccess: 'Your results were uploaded successfully.',
         uploadStatusFail: 'Upload failed. Your on-screen summary is still available.',
         restart: 'Restart Demo',
-        uploaded: 'Upload status',
-        practice: 'Practice',
         noOthers: 'This page does not expose any other participant data.',
-        language: '中文 / EN'
+        language: '中文 / EN',
+        leaderboardTitle: 'Optional Leaderboard',
+        leaderboardDesc: 'Only participants who opted in are shown below.',
+        noLeaderboard: 'No leaderboard entries available yet.',
+        rank: 'Rank',
+        name: 'Name',
+        score: 'Score',
+        accShort: 'Acc.',
+        rtShort: 'RT',
+        device: 'Device',
+        input: 'Input',
+        touchHint: 'Touch controls are enabled below for touchscreen devices.'
       },
       zh: {
         study: 'MIE286 实验',
         title: '方向匹配任务',
-        introLead: '本实验比较两种任务进度反馈方式：数字进度显示和可视化进度条。',
+        introLead: '本实验比较两种任务进度反馈方式：数字进度显示和可视化进度条，并要求你完成相反方向按键任务。',
         readBefore: '继续之前请先阅读',
         bullets: [
-          '你将先完成一个简短的练习环节，然后完成两个正式实验模块。',
+          '你将先完成 10 道练习题，再完成 2 个正式模块。',
+          '每个正式模块包含 100 道题，总计 200 道正式题目。',
+          '整个实验大约需要 8 分钟。',
           '每一道题都要按下屏幕箭头的相反方向键。',
           '实验有两种反馈方式：数字进度 和 进度条。',
           '系统会自动记录反应时间和正确率。',
-          '结束时只会显示你自己的结果摘要。'
+          '如果你同意加入积分榜，你的昵称可能会出现在仅对同意者显示的排行榜里。'
         ],
-        consent: '我同意以匿名方式参加 MIE286 课程项目实验。',
+        consent: '我同意以匿名方式参加 MIE286 课程项目实验。（必选，否则无法开始）',
+        soundConsent: '开启可选音效，让任务更有互动感。',
+        leaderboardConsent: '我同意加入可选积分榜。可选；如果不勾选，则不会加入积分榜，也看不到他人成绩。',
+        soundHint: '如果开启，每次作答都会播放同一种温和的“键盘敲击”音效；每 20 题会额外叠加一个轻微 bingo 提示音。',
+        nicknameLabel: '昵称（可选）',
+        nicknamePlaceholder: '可输入昵称，也可留空',
         participantLabel: '参与者编号',
-        participantPlaceholder: '请输入你的参与者编号',
+        participantPlaceholder: '可留空，系统将自动分配编号',
         continue: '继续到练习 →',
         warmup: '热身练习',
         practiceFirst: '先进行练习',
@@ -262,10 +498,9 @@
         bar: '进度条',
         numericDisplay: '已完成',
         barDisplay: '任务进度',
-        trial: '题目',
-        answered: '已作答',
-        correct: '答对',
         accuracy: '正确率',
+        meanRT: '平均反应时间',
+        elapsed: '用时',
         pressOpposite: '请按相反方向键。',
         practiceComplete: '练习结束。接下来开始第一个正式实验模块。',
         orderText: '你的正式实验顺序是',
@@ -275,15 +510,24 @@
         thankYou: '感谢你的参与',
         complete: '实验完成',
         yourResults: '你的个人结果',
-        meanRT: '平均反应时间',
+        uploaded: '上传状态',
         uploadStatusReady: '上传功能尚未连接。填入 Google Apps Script 链接后即可自动保存。',
         uploadStatusSuccess: '你的结果已成功上传。',
         uploadStatusFail: '上传失败，但你的页面结果仍可查看。',
         restart: '重新开始演示',
-        uploaded: '上传状态',
-        practice: '练习',
         noOthers: '此页面不会暴露其他参与者的数据。',
-        language: '中文 / EN'
+        language: '中文 / EN',
+        leaderboardTitle: '可选积分榜',
+        leaderboardDesc: '下面只显示同意加入积分榜的参与者。',
+        noLeaderboard: '目前还没有可显示的积分榜记录。',
+        rank: '排名',
+        name: '昵称',
+        score: '得分',
+        accShort: '正确率',
+        rtShort: '反应时',
+        device: '设备',
+        input: '输入方式',
+        touchHint: '触屏设备可使用下方方向键按钮。'
       }
     };
 
@@ -291,20 +535,123 @@
       lang: 'en',
       phase: 'intro',
       participantId: '',
+      nickname: '',
+      joinLeaderboard: false,
       conditionOrder: Math.random() < 0.5 ? ['numeric', 'bar'] : ['bar', 'numeric'],
       blockIndex: 0,
       trialIndex: 0,
       currentStimulus: null,
       waitingForResponse: false,
       trialStart: null,
+      blockStartTime: null,
       results: [],
       inPractice: false,
       feedbackMode: null,
       uploadStatus: 'idle',
+      leaderboard: [],
+      lastStimuli: [],
+      sessionId: `S-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
+      deviceType: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      inputMode: ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'touch' : 'keyboard',
+      soundEnabled: false,
+      audioCtx: null,
+      betweenAfterPractice: true
     };
 
     const screen = document.getElementById('screen');
     const t = (key) => I18N[state.lang][key];
+
+    function initAudio() {
+      if (!state.audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) state.audioCtx = new Ctx();
+      }
+      if (state.audioCtx && state.audioCtx.state === 'suspended') {
+        state.audioCtx.resume();
+      }
+    }
+
+    function playTapSound() {
+      if (!state.soundEnabled || !state.audioCtx) return;
+      const now = state.audioCtx.currentTime;
+      const osc1 = state.audioCtx.createOscillator();
+      const osc2 = state.audioCtx.createOscillator();
+      const gain = state.audioCtx.createGain();
+      const filter = state.audioCtx.createBiquadFilter();
+      filter.type = 'highshelf';
+      filter.frequency.value = 2200;
+      filter.gain.value = -4;
+      osc1.type = 'triangle';
+      osc2.type = 'square';
+      osc1.frequency.setValueAtTime(790, now);
+      osc2.frequency.setValueAtTime(1210, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.017, now + 0.003);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gain);
+      gain.connect(state.audioCtx.destination);
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.04);
+      osc2.stop(now + 0.04);
+    }
+
+    function playMilestoneSound() {
+      if (!state.soundEnabled || !state.audioCtx) return;
+      const now = state.audioCtx.currentTime;
+      const freqs = [988, 1319, 1568];
+      freqs.forEach((f, i) => {
+        const osc = state.audioCtx.createOscillator();
+        const gain = state.audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now + i * 0.08);
+        gain.gain.setValueAtTime(0.0001, now + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.02, now + i * 0.08 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.11);
+        osc.connect(gain);
+        gain.connect(state.audioCtx.destination);
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.12);
+      });
+    }
+
+    function generateParticipantId() {
+      return `P-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    }
+
+    function formatElapsed(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const min = String(Math.floor(totalSec / 60)).padStart(2, '0');
+      const sec = String(totalSec % 60).padStart(2, '0');
+      return `${min}:${sec}`;
+    }
+
+    function getMilestoneMessage(totalTrials) {
+      if (state.inPractice || state.feedbackMode === 'practice') return '';
+      const completed = state.trialIndex;
+      if (completed === 0 || completed % 20 !== 0) return '';
+      const remaining = totalTrials - completed;
+      const remainingPct = Math.round((remaining / totalTrials) * 100);
+      if (state.feedbackMode === 'numeric') {
+        return state.lang === 'zh' ? `还剩 ${remaining} 题` : `${remaining} trials remaining`;
+      }
+      return state.lang === 'zh' ? `还剩 ${remainingPct}%` : `${remainingPct}% remaining`;
+    }
+
+    function getElapsedMsForCurrentBlock() {
+      return state.blockStartTime ? performance.now() - state.blockStartTime : 0;
+    }
+
+    function nextStimulus() {
+      const recent = state.lastStimuli.slice(-2);
+      const candidates = CONFIG.stimuli.filter((stim) => !(recent.length === 2 && recent[0] === stim.symbol && recent[1] === stim.symbol));
+      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      state.lastStimuli.push(chosen.symbol);
+      if (state.lastStimuli.length > 2) state.lastStimuli = state.lastStimuli.slice(-2);
+      return chosen;
+    }
 
     function headerControls() {
       return `<div class="row language-switch"><button class="ghost" id="langToggle">${t('language')}</button></div>`;
@@ -312,8 +659,10 @@
 
     function attachLangToggle() {
       const btn = document.getElementById('langToggle');
-      if (btn) btn.addEventListener('click', () => {
+      if (!btn) return;
+      btn.addEventListener('click', () => {
         state.lang = state.lang === 'en' ? 'zh' : 'en';
+        if (state.phase === 'countdown') return;
         rerender();
       });
     }
@@ -323,70 +672,103 @@
         case 'intro': renderIntro(); break;
         case 'practiceIntro': renderPracticeIntro(); break;
         case 'between': renderBetween(); break;
+        case 'trial': renderTrial(state.inPractice ? CONFIG.practiceTrials : CONFIG.blockTrials); break;
         case 'complete': renderComplete(); break;
+        case 'countdown': break;
+        default: renderIntro();
       }
     }
 
     function renderIntro() {
+      state.phase = 'intro';
       screen.innerHTML = `
         <div class="topbar">
           <div>
             <p class="muted">${t('study')}</p>
             <h1>${t('title')}</h1>
             <p>${t('introLead')}</p>
+            <span class="pill">${t('device')}: ${state.deviceType}</span>
+            <span class="pill">${t('input')}: ${state.inputMode}</span>
           </div>
           ${headerControls()}
         </div>
-        <div class="card">
+        <div class="card fullscreen-flow">
           <h2>${t('readBefore')}</h2>
-          <ul>${I18N[state.lang].bullets.map(x => `<li>${x}</li>`).join('')}</ul>
+          <ul>${I18N[state.lang].bullets.map((x) => `<li>${x}</li>`).join('')}</ul>
           <div class="row" style="margin-top:14px;">
+            <div>
+              <label class="muted">${t('nicknameLabel')}</label><br />
+              <input id="nicknameInput" type="text" placeholder="${t('nicknamePlaceholder')}" value="${state.nickname}" />
+            </div>
             <div>
               <label class="muted">${t('participantLabel')}</label><br />
               <input id="pidInput" type="text" placeholder="${t('participantPlaceholder')}" value="${state.participantId}" />
             </div>
           </div>
-          <label class="row" style="margin-top:14px;">
+          <label class="row" style="margin-top:14px; align-items:flex-start;">
             <input id="consent" type="checkbox" />
             <span>${t('consent')}</span>
           </label>
-        </div>
-        <div class="row" style="margin-top:18px;">
-          <button id="continueBtn" disabled>${t('continue')}</button>
+          <label class="row" style="margin-top:10px; align-items:flex-start;">
+            <input id="leaderboardConsent" type="checkbox" ${state.joinLeaderboard ? 'checked' : ''} />
+            <span>${t('leaderboardConsent')}</span>
+          </label>
+          <label class="row" style="margin-top:10px; align-items:flex-start;">
+            <input id="soundConsent" type="checkbox" ${state.soundEnabled ? 'checked' : ''} />
+            <span>${t('soundConsent')}</span>
+          </label>
+          <p class="muted" style="margin-top:8px;">${t('soundHint')}</p>
+          <div class="row" style="margin-top:18px;">
+            <button id="continueBtn" disabled>${t('continue')}</button>
+          </div>
         </div>
       `;
       attachLangToggle();
       const consent = document.getElementById('consent');
+      const lb = document.getElementById('leaderboardConsent');
       const btn = document.getElementById('continueBtn');
-      const input = document.getElementById('pidInput');
-      const validate = () => {
-        btn.disabled = !consent.checked || !input.value.trim();
-      };
-      input.addEventListener('input', validate);
+      const pidInput = document.getElementById('pidInput');
+      const nicknameInput = document.getElementById('nicknameInput');
+      const soundConsent = document.getElementById('soundConsent');
+      const validate = () => { btn.disabled = !consent.checked; };
       consent.addEventListener('change', validate);
+      lb.addEventListener('change', () => { state.joinLeaderboard = lb.checked; });
+      validate();
       btn.addEventListener('click', () => {
-        state.participantId = input.value.trim();
+        state.nickname = nicknameInput.value.trim();
+        state.participantId = pidInput.value.trim() || generateParticipantId();
+        state.joinLeaderboard = lb.checked;
+        state.soundEnabled = soundConsent.checked;
+        if (state.soundEnabled) initAudio();
         state.phase = 'practiceIntro';
         renderPracticeIntro();
       });
     }
 
     function renderPracticeIntro() {
+      state.phase = 'practiceIntro';
       screen.innerHTML = `
         <div class="topbar">
           <div>
             <p class="muted">${t('warmup')}</p>
-            <h2>${t('practiceFirst')}</h2>
           </div>
           ${headerControls()}
         </div>
-        <p>${t('practiceDesc')}</p>
-        <div class="card">
-          <p><strong>${t('rule')}</strong> ${t('ruleText')}</p>
-          <p class="muted">${t('cogLoad')}</p>
-        </div>
-        <div class="row" style="margin-top:18px;">
-          <button id="startPractice">${t('startPractice')}</button>
+        <div class="transition-screen">
+          <div class="transition-panel">
+            <div class="transition-copy">
+              <p class="transition-kicker">${t('practiceRound')}</p>
+              <h2 class="transition-title">${t('practiceFirst')}</h2>
+              <p class="transition-lead">${t('practiceDesc')}</p>
+            </div>
+            <div class="transition-info">
+              <p><strong>${t('rule')}</strong> ${t('ruleText')}</p>
+              <p class="muted" style="margin-top:12px;">${t('cogLoad')}</p>
+            </div>
+            <div class="transition-actions">
+              <button id="startPractice">${t('startPractice')}</button>
+            </div>
+          </div>
         </div>
       `;
       attachLangToggle();
@@ -397,7 +779,13 @@
       state.inPractice = isPractice;
       state.trialIndex = 0;
       state.feedbackMode = isPractice ? 'practice' : state.conditionOrder[state.blockIndex];
-      countdownThen(nextTrial);
+      state.blockStartTime = null;
+      state.lastStimuli = [];
+      state.phase = 'countdown';
+      countdownThen(() => {
+        state.blockStartTime = performance.now();
+        nextTrial();
+      });
     }
 
     function countdownThen(cb) {
@@ -410,7 +798,9 @@
           </div>
           ${headerControls()}
         </div>
-        <div class="stimulus"><div class="big" id="countdown">${count}</div></div>
+        <div class="fullscreen-flow">
+          <div class="stimulus"><div class="arrow" id="countdown">${count}</div></div>
+        </div>
       `;
       attachLangToggle();
       const el = document.getElementById('countdown');
@@ -427,8 +817,12 @@
 
     function nextTrial() {
       const totalTrials = state.inPractice ? CONFIG.practiceTrials : CONFIG.blockTrials;
-      if (state.trialIndex >= totalTrials) return endBlock();
-      state.currentStimulus = CONFIG.stimuli[Math.floor(Math.random() * CONFIG.stimuli.length)];
+      if (state.trialIndex >= totalTrials) {
+        endBlock();
+        return;
+      }
+      state.phase = 'trial';
+      state.currentStimulus = nextStimulus();
       state.trialStart = performance.now();
       state.waitingForResponse = true;
       renderTrial(totalTrials);
@@ -436,93 +830,156 @@
 
     function renderTrial(totalTrials) {
       const progressPct = (state.trialIndex / totalTrials) * 100;
-      const blockRows = state.results.filter(r => r.participantId === state.participantId && r.condition === state.feedbackMode);
+      const blockRows = state.results.filter((r) => r.participantId === state.participantId && r.condition === state.feedbackMode && !r.practice);
       const answered = blockRows.length;
-      const correct = blockRows.filter(r => r.correct).length;
-      const acc = answered ? `${Math.round(correct / answered * 100)}%` : '—';
-      let feedbackHtml = '';
-      if (!state.inPractice) {
-        feedbackHtml = state.feedbackMode === 'numeric'
-          ? `<div class="numeric-progress">${t('numericDisplay')}: ${state.trialIndex}/${totalTrials}</div>`
-          : `<div><div class="muted" style="margin-bottom:6px;">${t('barDisplay')}</div><div class="progress-shell"><div class="progress-fill" style="width:${progressPct}%"></div></div></div>`;
-      }
+      const correct = blockRows.filter((r) => r.correct).length;
+      const acc = answered ? `${Math.round((correct / answered) * 100)}%` : '—';
+      const meanRT = correct ? `${Math.round(blockRows.filter((r) => r.correct).reduce((sum, r) => sum + r.rtMs, 0) / correct)} ms` : '—';
+      const elapsed = formatElapsed(getElapsedMsForCurrentBlock());
+      const milestoneMessage = getMilestoneMessage(totalTrials);
+
+      const numericAboveArrow = state.feedbackMode === 'numeric'
+        ? `<div class="completed-answer-top"><div class="done-number">${state.trialIndex}</div><div class="total-number">/ ${totalTrials}</div></div>`
+        : '';
+
+      const feedbackPanel = state.inPractice ? '' : (state.feedbackMode === 'numeric'
+        ? `<div class="feedback-panel"><div class="feedback-label">${t('numericDisplay')}</div></div>`
+        : `<div class="feedback-panel"><div class="feedback-label">${t('barDisplay')}</div><div class="progress-shell"><div class="progress-fill" style="width:${progressPct}%"></div></div></div>`);
+
       screen.innerHTML = `
         <div class="topbar">
           <div>
             <p class="muted">${state.inPractice ? t('practiceRound') : `${t('feedback')}: ${state.feedbackMode === 'numeric' ? t('numeric') : t('bar')}`}</p>
-            <h2>${state.inPractice ? t('practice') : `${t('block')} ${state.blockIndex + 1} ${t('of')} 2`}</h2>
+            <h2>${state.inPractice ? t('practiceRound') : `${t('block')} ${state.blockIndex + 1} ${t('of')} 2`}</h2>
           </div>
           ${headerControls()}
-          <div>${feedbackHtml}</div>
         </div>
-        <div class="grid">
-          <div class="stat"><div class="stat-label">${t('trial')}</div><div class="stat-value">${state.trialIndex + 1}/${totalTrials}</div></div>
-          <div class="stat"><div class="stat-label">${t('answered')}</div><div class="stat-value">${answered}</div></div>
-          <div class="stat"><div class="stat-label">${t('correct')}</div><div class="stat-value">${correct}</div></div>
-          <div class="stat"><div class="stat-label">${t('accuracy')}</div><div class="stat-value">${acc}</div></div>
+        <div class="main-layout">
+          <div class="grid">
+            <div class="stat"><div class="stat-label">${t('accuracy')}</div><div class="stat-value">${acc}</div></div>
+            <div class="stat"><div class="stat-label">${t('meanRT')}</div><div class="stat-value">${meanRT}</div></div>
+            <div class="stat"><div class="stat-label">${t('elapsed')}</div><div class="stat-value">${elapsed}</div></div>
+          </div>
+          ${feedbackPanel}
+          ${milestoneMessage ? `<div class="milestone-banner">${milestoneMessage}</div>` : ''}
+          ${numericAboveArrow}
+          <div class="stimulus"><div class="arrow">${state.currentStimulus.symbol}</div></div>
+          <p class="muted">${t('pressOpposite')}</p>
+          ${state.inputMode === 'touch' ? `
+            <p class="muted">${t('touchHint')}</p>
+            <div class="touchpad-wrap">
+              <div class="touchpad">
+                <div class="touchpad-empty"></div>
+                <button class="touch-btn" data-key="ArrowUp" aria-label="Up">↑</button>
+                <div class="touchpad-empty"></div>
+                <button class="touch-btn" data-key="ArrowLeft" aria-label="Left">←</button>
+                <button class="touch-btn" data-key="ArrowDown" aria-label="Down">↓</button>
+                <button class="touch-btn" data-key="ArrowRight" aria-label="Right">→</button>
+              </div>
+            </div>
+          ` : ''}
         </div>
-        <div class="stimulus"><div class="arrow">${state.currentStimulus.symbol}</div></div>
-        <p class="muted">${t('pressOpposite')}</p>
       `;
       attachLangToggle();
+      if (state.inputMode === 'touch') {
+        document.querySelectorAll('.touch-btn').forEach((btn) => {
+          const press = (e) => {
+            e.preventDefault();
+            handleResponse(btn.dataset.key);
+          };
+          btn.addEventListener('click', press);
+          btn.addEventListener('touchstart', press, { passive: false });
+        });
+      }
     }
 
-    function handleKey(event) {
+    function handleResponse(keyValue) {
       if (!state.waitingForResponse) return;
-      if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)) return;
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(keyValue)) return;
       const rt = Math.round(performance.now() - state.trialStart);
-      const correct = event.key === state.currentStimulus.correct;
+      const correct = keyValue === state.currentStimulus.correct;
+      playTapSound();
+      const completedAfterThis = state.trialIndex + 1;
+      if (!state.inPractice && completedAfterThis % 20 === 0) {
+        playMilestoneSound();
+      }
       state.results.push({
         participantId: state.participantId,
+        nickname: state.nickname,
+        sessionId: state.sessionId,
+        deviceType: state.deviceType,
+        inputMode: state.inputMode,
+        soundEnabled: state.soundEnabled,
+        joinLeaderboard: state.joinLeaderboard,
         condition: state.feedbackMode,
         blockIndex: state.inPractice ? -1 : state.blockIndex,
         practice: state.inPractice,
         trial: state.trialIndex + 1,
         stimulus: state.currentStimulus.symbol,
         correctKey: state.currentStimulus.correct,
-        responseKey: event.key,
+        responseKey: keyValue,
         correct,
         rtMs: rt,
+        elapsedMsInBlock: Math.round(getElapsedMsForCurrentBlock()),
         timestamp: new Date().toISOString()
       });
       state.waitingForResponse = false;
       state.trialIndex += 1;
+      if (!state.inPractice && CONFIG.enableUpload && CONFIG.googleScriptUrl && state.trialIndex % CONFIG.autosaveEveryTrials === 0) {
+        uploadParticipantResults(true);
+      }
       setTimeout(nextTrial, CONFIG.interTrialMs);
+    }
+
+    function handleKey(event) {
+      if (state.inputMode === 'touch') return;
+      handleResponse(event.key);
     }
 
     function endBlock() {
       if (state.inPractice) {
+        state.betweenAfterPractice = true;
         state.phase = 'between';
-        renderBetween(true);
+        renderBetween();
         return;
       }
       if (state.blockIndex === 0) {
         state.blockIndex = 1;
+        state.betweenAfterPractice = false;
         state.phase = 'between';
-        renderBetween(false);
+        renderBetween();
       } else {
         state.phase = 'complete';
         renderComplete();
-        uploadParticipantResults();
+        uploadParticipantResults(false);
       }
     }
 
-    function renderBetween(afterPractice) {
+    function renderBetween(afterPractice = state.betweenAfterPractice) {
+      state.phase = 'between';
+      state.betweenAfterPractice = afterPractice;
       const message = afterPractice ? t('practiceComplete') : t('block1Complete');
       const orderText = `${state.conditionOrder[0] === 'numeric' ? t('numeric') : t('bar')} → ${state.conditionOrder[1] === 'numeric' ? t('numeric') : t('bar')}`;
       screen.innerHTML = `
         <div class="topbar">
           <div>
-            <p class="muted">${afterPractice ? t('practiceRound') : t('block')}</p>
-            <h2>${message}</h2>
+            <p class="muted">${afterPractice ? t('practiceRound') : `${t('block')} ${state.blockIndex} ${t('of')} 2`}</p>
           </div>
           ${headerControls()}
         </div>
-        <div class="card">
-          <p>${t('orderText')} <strong>${orderText}</strong>.</p>
-        </div>
-        <div class="row" style="margin-top:18px;">
-          <button id="nextBtn">${afterPractice ? t('startBlock1') : t('startBlock2')}</button>
+        <div class="transition-screen">
+          <div class="transition-panel">
+            <div class="transition-copy">
+              <p class="transition-kicker">${afterPractice ? t('practiceRound') : `${t('block')} ${state.blockIndex} ${t('of')} 2`}</p>
+              <h2 class="transition-title">${message}</h2>
+            </div>
+            <div class="transition-info">
+              <p>${t('orderText')} <strong>${orderText}</strong>.</p>
+            </div>
+            <div class="transition-actions">
+              <button id="nextBtn">${afterPractice ? t('startBlock1') : t('startBlock2')}</button>
+            </div>
+          </div>
         </div>
       `;
       attachLangToggle();
@@ -530,38 +987,63 @@
     }
 
     function summarizeCondition(condition) {
-      const rows = state.results.filter(r => !r.practice && r.participantId === state.participantId && r.condition === condition);
-      const correctRows = rows.filter(r => r.correct);
-      const meanRT = correctRows.length ? Math.round(correctRows.reduce((a,b) => a + b.rtMs, 0) / correctRows.length) : 0;
+      const rows = state.results.filter((r) => !r.practice && r.participantId === state.participantId && r.condition === condition);
+      const correctRows = rows.filter((r) => r.correct);
+      const meanRT = correctRows.length ? Math.round(correctRows.reduce((a, b) => a + b.rtMs, 0) / correctRows.length) : 0;
       const accuracy = rows.length ? correctRows.length / rows.length : 0;
-      return { meanRT, accuracy, attempted: rows.length };
+      const score = rows.length ? Math.round((accuracy * 100000) / Math.max(meanRT || 1, 1)) : 0;
+      return { meanRT, accuracy, attempted: rows.length, score };
     }
 
-    async function uploadParticipantResults() {
+    async function fetchLeaderboard() {
+      if (!CONFIG.enableUpload || !CONFIG.googleScriptUrl) return;
+      try {
+        const res = await fetch(`${CONFIG.googleScriptUrl}?mode=leaderboard`);
+        if (!res.ok) return;
+        const data = await res.json();
+        state.leaderboard = Array.isArray(data.entries) ? data.entries : [];
+        if (state.phase === 'complete') renderComplete();
+      } catch (e) {
+      }
+    }
+
+    async function uploadParticipantResults(isPartial = false) {
       if (!CONFIG.enableUpload || !CONFIG.googleScriptUrl) {
         state.uploadStatus = 'not_connected';
         if (state.phase === 'complete') renderComplete();
         return;
       }
       try {
+        const numericSummary = summarizeCondition('numeric');
+        const barSummary = summarizeCondition('bar');
         const payload = {
           participantId: state.participantId,
+          nickname: state.nickname,
+          sessionId: state.sessionId,
+          deviceType: state.deviceType,
+          inputMode: state.inputMode,
+          soundEnabled: state.soundEnabled,
+          joinLeaderboard: state.joinLeaderboard,
           order: state.conditionOrder.join('->'),
           practiceTrials: CONFIG.practiceTrials,
           blockTrials: CONFIG.blockTrials,
-          numericSummary: summarizeCondition('numeric'),
-          barSummary: summarizeCondition('bar'),
-          trialData: state.results.filter(r => r.participantId === state.participantId)
+          partialSave: isPartial,
+          numericSummary,
+          barSummary,
+          finalScore: Math.max(numericSummary.score, barSummary.score),
+          trialData: state.results.filter((r) => r.participantId === state.participantId)
         };
         const res = await fetch(CONFIG.googleScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          keepalive: true
         });
         state.uploadStatus = res.ok ? 'success' : 'fail';
       } catch (e) {
         state.uploadStatus = 'fail';
       }
+      if (!isPartial) await fetchLeaderboard();
       if (state.phase === 'complete') renderComplete();
     }
 
@@ -569,6 +1051,44 @@
       if (state.uploadStatus === 'success') return `<span class="success">${t('uploadStatusSuccess')}</span>`;
       if (state.uploadStatus === 'fail') return `<span class="warning">${t('uploadStatusFail')}</span>`;
       return `<span class="muted">${t('uploadStatusReady')}</span>`;
+    }
+
+    function leaderboardHtml() {
+      if (!state.joinLeaderboard) return '';
+      if (!state.leaderboard.length) {
+        return `
+          <div class="card">
+            <h3>${t('leaderboardTitle')}</h3>
+            <p class="muted">${t('leaderboardDesc')}</p>
+            <p class="muted">${t('noLeaderboard')}</p>
+          </div>`;
+      }
+      return `
+        <div class="card">
+          <h3>${t('leaderboardTitle')}</h3>
+          <p class="muted">${t('leaderboardDesc')}</p>
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>${t('rank')}</th>
+                <th>${t('name')}</th>
+                <th>${t('score')}</th>
+                <th>${t('accShort')}</th>
+                <th>${t('rtShort')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${state.leaderboard.map((row, idx) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td>${row.nickname || row.participantId || 'Anonymous'}</td>
+                  <td>${row.score}</td>
+                  <td>${Math.round((row.accuracy || 0) * 100)}%</td>
+                  <td>${row.meanRT || 0} ms</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
     }
 
     function renderComplete() {
@@ -582,20 +1102,27 @@
           </div>
           ${headerControls()}
         </div>
-        <p>${t('yourResults')}</p>
-        <div class="grid">
-          <div class="stat"><div class="stat-label">${t('numeric')} ${t('meanRT')}</div><div class="stat-value">${numeric.meanRT} ms</div></div>
-          <div class="stat"><div class="stat-label">${t('numeric')} ${t('accuracy')}</div><div class="stat-value">${Math.round(numeric.accuracy * 100)}%</div></div>
-          <div class="stat"><div class="stat-label">${t('bar')} ${t('meanRT')}</div><div class="stat-value">${bar.meanRT} ms</div></div>
-          <div class="stat"><div class="stat-label">${t('bar')} ${t('accuracy')}</div><div class="stat-value">${Math.round(bar.accuracy * 100)}%</div></div>
-        </div>
-        <div class="card">
-          <p><strong>${t('participantLabel')}:</strong> ${state.participantId}</p>
-          <p><strong>${t('uploaded')}:</strong> ${uploadMessage()}</p>
-          <p class="muted">${t('noOthers')}</p>
-        </div>
-        <div class="row" style="margin-top:18px;">
-          <button class="secondary" id="restartBtn">${t('restart')}</button>
+        <div class="card fullscreen-flow">
+          <p>${t('yourResults')}</p>
+          <div class="grid">
+            <div class="stat"><div class="stat-label">${t('numeric')} ${t('meanRT')}</div><div class="stat-value">${numeric.meanRT} ms</div></div>
+            <div class="stat"><div class="stat-label">${t('numeric')} ${t('accuracy')}</div><div class="stat-value">${Math.round(numeric.accuracy * 100)}%</div></div>
+            <div class="stat"><div class="stat-label">${t('bar')} ${t('meanRT')}</div><div class="stat-value">${bar.meanRT} ms</div></div>
+            <div class="stat"><div class="stat-label">${t('bar')} ${t('accuracy')}</div><div class="stat-value">${Math.round(bar.accuracy * 100)}%</div></div>
+          </div>
+          <div class="card">
+            <p><strong>${t('participantLabel')}:</strong> ${state.participantId}</p>
+            <p><strong>${t('nicknameLabel')}:</strong> ${state.nickname || '—'}</p>
+            <p><strong>${t('device')}:</strong> ${state.deviceType}</p>
+            <p><strong>${t('input')}:</strong> ${state.inputMode}</p>
+            <p><strong>Sound:</strong> ${state.soundEnabled ? 'on' : 'off'}</p>
+            <p><strong>${t('uploaded')}:</strong> ${uploadMessage()}</p>
+            <p class="muted">${t('noOthers')}</p>
+          </div>
+          ${leaderboardHtml()}
+          <div class="row" style="margin-top:18px;">
+            <button class="secondary" id="restartBtn">${t('restart')}</button>
+          </div>
         </div>
       `;
       attachLangToggle();
@@ -603,6 +1130,34 @@
     }
 
     window.addEventListener('keydown', handleKey);
+    window.addEventListener('beforeunload', () => {
+      if (CONFIG.enableUpload && CONFIG.googleScriptUrl && state.results.length > 0) {
+        const numericSummary = summarizeCondition('numeric');
+        const barSummary = summarizeCondition('bar');
+        const payload = {
+          participantId: state.participantId,
+          nickname: state.nickname,
+          sessionId: state.sessionId,
+          deviceType: state.deviceType,
+          inputMode: state.inputMode,
+          soundEnabled: state.soundEnabled,
+          joinLeaderboard: state.joinLeaderboard,
+          order: state.conditionOrder.join('->'),
+          practiceTrials: CONFIG.practiceTrials,
+          blockTrials: CONFIG.blockTrials,
+          partialSave: true,
+          numericSummary,
+          barSummary,
+          finalScore: Math.max(numericSummary.score, barSummary.score),
+          trialData: state.results.filter((r) => r.participantId === state.participantId)
+        };
+        navigator.sendBeacon(
+          CONFIG.googleScriptUrl,
+          new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=utf-8' })
+        );
+      }
+    });
+
     renderIntro();
   </script>
 </body>
