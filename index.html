@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MIE286 Study - Direction Matching Game</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --border: #1f2937;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .app {
+      width: 100%;
+      max-width: 920px;
+      background: rgba(17, 24, 39, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: 2rem; margin-bottom: 8px; }
+    h2 { font-size: 1.35rem; margin-bottom: 12px; }
+    .muted { color: var(--muted); }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(255,255,255,0.02);
+      margin-top: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+    .stat-label { color: var(--muted); font-size: 0.9rem; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; margin-top: 6px; }
+    ul, ol { line-height: 1.6; }
+    button {
+      appearance: none;
+      border: none;
+      background: linear-gradient(90deg, var(--accent), #60a5fa);
+      color: #08111f;
+      font-weight: 700;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button.ghost {
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .language-switch { margin-left: auto; }
+    .progress-shell {
+      width: 260px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-2), #86efac);
+      transition: width 0.12s linear;
+    }
+    .numeric-progress {
+      font-size: 1.2rem;
+      font-weight: 800;
+      min-width: 110px;
+      text-align: right;
+    }
+    .stimulus {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 220px;
+      border: 1px dashed #334155;
+      border-radius: 22px;
+      margin: 22px 0;
+      background: rgba(255,255,255,0.02);
+    }
+    .arrow {
+      font-size: 7rem;
+      line-height: 1;
+      user-select: none;
+    }
+    .big { font-size: 2.2rem; font-weight: 800; }
+    .kbd {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      font-family: monospace;
+    }
+    input[type="text"] {
+      width: 260px;
+      max-width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    .footer-note { color: var(--muted); font-size: 0.9rem; margin-top: 16px; }
+    .success { color: #86efac; }
+    .warning { color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div id="screen"></div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      practiceTrials: 10,
+      blockTrials: 100,
+      interTrialMs: 300,
+      countdownSeconds: 3,
+      stimuli: [
+        { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown' },
+        { key: 'ArrowDown', symbol: '↓', correct: 'ArrowUp' },
+        { key: 'ArrowLeft', symbol: '←', correct: 'ArrowRight' },
+        { key: 'ArrowRight', symbol: '→', correct: 'ArrowLeft' },
+      ],
+      // Replace this with your deployed Google Apps Script Web App URL.
+      googleScriptUrl: '',
+      enableUpload: false,
+    };
+
+    const I18N = {
+      en: {
+        study: 'MIE286 Study',
+        title: 'Direction Matching Game',
+        introLead: 'This study compares two ways of showing task progress: a numeric progress display and a visual progress bar.',
+        readBefore: 'Please read before continuing',
+        bullets: [
+          'You will complete a short practice round first, then two main blocks.',
+          'On every trial, press the opposite arrow key of the arrow shown on screen.',
+          'There are two feedback styles: Numeric Progress and Progress Bar.',
+          'Reaction time and accuracy are recorded automatically.',
+          'Only your own summary will be shown at the end.'
+        ],
+        consent: 'I agree to participate anonymously for the MIE286 course project.',
+        participantLabel: 'Participant ID',
+        participantPlaceholder: 'Enter your participant ID',
+        continue: 'Continue to Practice →',
+        warmup: 'Warm-up Round',
+        practiceFirst: 'Practice first',
+        practiceDesc: 'You will complete 10 practice trials. These do not count toward the final results.',
+        rule: 'Rule:',
+        ruleText: 'if you see ↑, press ↓. If you see ←, press →, and so on.',
+        cogLoad: 'This opposite-response rule adds some cognitive load so the task is not too easy.',
+        startPractice: 'Start Practice →',
+        practiceRound: 'Practice Round',
+        block: 'Block',
+        of: 'of',
+        getReady: 'Get Ready',
+        feedback: 'Feedback',
+        numeric: 'Numeric Progress',
+        bar: 'Progress Bar',
+        numericDisplay: 'Completed',
+        barDisplay: 'Task Progress',
+        trial: 'Trial',
+        answered: 'Answered',
+        correct: 'Correct',
+        accuracy: 'Accuracy',
+        pressOpposite: 'Press the opposite arrow key.',
+        practiceComplete: 'Practice complete. Next, you will start the first experimental block.',
+        orderText: 'Your main task order is',
+        startBlock1: 'Start Block 1 →',
+        block1Complete: 'Block 1 complete. Take a short break, then continue to Block 2.',
+        startBlock2: 'Start Block 2 →',
+        thankYou: 'Thank you for participating',
+        complete: 'Test Complete',
+        yourResults: 'Your personal results',
+        meanRT: 'Mean RT',
+        uploadStatusReady: 'Upload is not connected yet. Add your Google Apps Script URL to enable automatic saving.',
+        uploadStatusSuccess: 'Your results were uploaded successfully.',
+        uploadStatusFail: 'Upload failed. Your on-screen summary is still available.',
+        restart: 'Restart Demo',
+        uploaded: 'Upload status',
+        practice: 'Practice',
+        noOthers: 'This page does not expose any other participant data.',
+        language: '中文 / EN'
+      },
+      zh: {
+        study: 'MIE286 实验',
+        title: '方向匹配任务',
+        introLead: '本实验比较两种任务进度反馈方式：数字进度显示和可视化进度条。',
+        readBefore: '继续之前请先阅读',
+        bullets: [
+          '你将先完成一个简短的练习环节，然后完成两个正式实验模块。',
+          '每一道题都要按下屏幕箭头的相反方向键。',
+          '实验有两种反馈方式：数字进度 和 进度条。',
+          '系统会自动记录反应时间和正确率。',
+          '结束时只会显示你自己的结果摘要。'
+        ],
+        consent: '我同意以匿名方式参加 MIE286 课程项目实验。',
+        participantLabel: '参与者编号',
+        participantPlaceholder: '请输入你的参与者编号',
+        continue: '继续到练习 →',
+        warmup: '热身练习',
+        practiceFirst: '先进行练习',
+        practiceDesc: '你将完成 10 道练习题，这些题目不会计入最终结果。',
+        rule: '规则：',
+        ruleText: '如果看到 ↑，就按 ↓；如果看到 ←，就按 →，其余同理。',
+        cogLoad: '“按相反方向”的规则会增加一定认知负担，避免任务过于简单。',
+        startPractice: '开始练习 →',
+        practiceRound: '练习环节',
+        block: '模块',
+        of: '/',
+        getReady: '准备开始',
+        feedback: '反馈方式',
+        numeric: '数字进度',
+        bar: '进度条',
+        numericDisplay: '已完成',
+        barDisplay: '任务进度',
+        trial: '题目',
+        answered: '已作答',
+        correct: '答对',
+        accuracy: '正确率',
+        pressOpposite: '请按相反方向键。',
+        practiceComplete: '练习结束。接下来开始第一个正式实验模块。',
+        orderText: '你的正式实验顺序是',
+        startBlock1: '开始模块 1 →',
+        block1Complete: '模块 1 已结束。短暂休息后继续模块 2。',
+        startBlock2: '开始模块 2 →',
+        thankYou: '感谢你的参与',
+        complete: '实验完成',
+        yourResults: '你的个人结果',
+        meanRT: '平均反应时间',
+        uploadStatusReady: '上传功能尚未连接。填入 Google Apps Script 链接后即可自动保存。',
+        uploadStatusSuccess: '你的结果已成功上传。',
+        uploadStatusFail: '上传失败，但你的页面结果仍可查看。',
+        restart: '重新开始演示',
+        uploaded: '上传状态',
+        practice: '练习',
+        noOthers: '此页面不会暴露其他参与者的数据。',
+        language: '中文 / EN'
+      }
+    };
+
+    const state = {
+      lang: 'en',
+      phase: 'intro',
+      participantId: '',
+      conditionOrder: Math.random() < 0.5 ? ['numeric', 'bar'] : ['bar', 'numeric'],
+      blockIndex: 0,
+      trialIndex: 0,
+      currentStimulus: null,
+      waitingForResponse: false,
+      trialStart: null,
+      results: [],
+      inPractice: false,
+      feedbackMode: null,
+      uploadStatus: 'idle',
+    };
+
+    const screen = document.getElementById('screen');
+    const t = (key) => I18N[state.lang][key];
+
+    function headerControls() {
+      return `<div class="row language-switch"><button class="ghost" id="langToggle">${t('language')}</button></div>`;
+    }
+
+    function attachLangToggle() {
+      const btn = document.getElementById('langToggle');
+      if (btn) btn.addEventListener('click', () => {
+        state.lang = state.lang === 'en' ? 'zh' : 'en';
+        rerender();
+      });
+    }
+
+    function rerender() {
+      switch (state.phase) {
+        case 'intro': renderIntro(); break;
+        case 'practiceIntro': renderPracticeIntro(); break;
+        case 'between': renderBetween(); break;
+        case 'complete': renderComplete(); break;
+      }
+    }
+
+    function renderIntro() {
+      screen.innerHTML = `
+        <div class="topbar">
+          <div>
+            <p class="muted">${t('study')}</p>
+            <h1>${t('title')}</h1>
+            <p>${t('introLead')}</p>
+          </div>
+          ${headerControls()}
+        </div>
+        <div class="card">
+          <h2>${t('readBefore')}</h2>
+          <ul>${I18N[state.lang].bullets.map(x => `<li>${x}</li>`).join('')}</ul>
+          <div class="row" style="margin-top:14px;">
+            <div>
+              <label class="muted">${t('participantLabel')}</label><br />
+              <input id="pidInput" type="text" placeholder="${t('participantPlaceholder')}" value="${state.participantId}" />
+            </div>
+          </div>
+          <label class="row" style="margin-top:14px;">
+            <input id="consent" type="checkbox" />
+            <span>${t('consent')}</span>
+          </label>
+        </div>
+        <div class="row" style="margin-top:18px;">
+          <button id="continueBtn" disabled>${t('continue')}</button>
+        </div>
+      `;
+      attachLangToggle();
+      const consent = document.getElementById('consent');
+      const btn = document.getElementById('continueBtn');
+      const input = document.getElementById('pidInput');
+      const validate = () => {
+        btn.disabled = !consent.checked || !input.value.trim();
+      };
+      input.addEventListener('input', validate);
+      consent.addEventListener('change', validate);
+      btn.addEventListener('click', () => {
+        state.participantId = input.value.trim();
+        state.phase = 'practiceIntro';
+        renderPracticeIntro();
+      });
+    }
+
+    function renderPracticeIntro() {
+      screen.innerHTML = `
+        <div class="topbar">
+          <div>
+            <p class="muted">${t('warmup')}</p>
+            <h2>${t('practiceFirst')}</h2>
+          </div>
+          ${headerControls()}
+        </div>
+        <p>${t('practiceDesc')}</p>
+        <div class="card">
+          <p><strong>${t('rule')}</strong> ${t('ruleText')}</p>
+          <p class="muted">${t('cogLoad')}</p>
+        </div>
+        <div class="row" style="margin-top:18px;">
+          <button id="startPractice">${t('startPractice')}</button>
+        </div>
+      `;
+      attachLangToggle();
+      document.getElementById('startPractice').addEventListener('click', () => startBlock(true));
+    }
+
+    function startBlock(isPractice) {
+      state.inPractice = isPractice;
+      state.trialIndex = 0;
+      state.feedbackMode = isPractice ? 'practice' : state.conditionOrder[state.blockIndex];
+      countdownThen(nextTrial);
+    }
+
+    function countdownThen(cb) {
+      let count = CONFIG.countdownSeconds;
+      screen.innerHTML = `
+        <div class="topbar">
+          <div>
+            <p class="muted">${state.inPractice ? t('practiceRound') : `${t('block')} ${state.blockIndex + 1} ${t('of')} 2`}</p>
+            <h2>${t('getReady')}</h2>
+          </div>
+          ${headerControls()}
+        </div>
+        <div class="stimulus"><div class="big" id="countdown">${count}</div></div>
+      `;
+      attachLangToggle();
+      const el = document.getElementById('countdown');
+      const interval = setInterval(() => {
+        count -= 1;
+        if (count <= 0) {
+          clearInterval(interval);
+          cb();
+        } else {
+          el.textContent = count;
+        }
+      }, 800);
+    }
+
+    function nextTrial() {
+      const totalTrials = state.inPractice ? CONFIG.practiceTrials : CONFIG.blockTrials;
+      if (state.trialIndex >= totalTrials) return endBlock();
+      state.currentStimulus = CONFIG.stimuli[Math.floor(Math.random() * CONFIG.stimuli.length)];
+      state.trialStart = performance.now();
+      state.waitingForResponse = true;
+      renderTrial(totalTrials);
+    }
+
+    function renderTrial(totalTrials) {
+      const progressPct = (state.trialIndex / totalTrials) * 100;
+      const blockRows = state.results.filter(r => r.participantId === state.participantId && r.condition === state.feedbackMode);
+      const answered = blockRows.length;
+      const correct = blockRows.filter(r => r.correct).length;
+      const acc = answered ? `${Math.round(correct / answered * 100)}%` : '—';
+      let feedbackHtml = '';
+      if (!state.inPractice) {
+        feedbackHtml = state.feedbackMode === 'numeric'
+          ? `<div class="numeric-progress">${t('numericDisplay')}: ${state.trialIndex}/${totalTrials}</div>`
+          : `<div><div class="muted" style="margin-bottom:6px;">${t('barDisplay')}</div><div class="progress-shell"><div class="progress-fill" style="width:${progressPct}%"></div></div></div>`;
+      }
+      screen.innerHTML = `
+        <div class="topbar">
+          <div>
+            <p class="muted">${state.inPractice ? t('practiceRound') : `${t('feedback')}: ${state.feedbackMode === 'numeric' ? t('numeric') : t('bar')}`}</p>
+            <h2>${state.inPractice ? t('practice') : `${t('block')} ${state.blockIndex + 1} ${t('of')} 2`}</h2>
+          </div>
+          ${headerControls()}
+          <div>${feedbackHtml}</div>
+        </div>
+        <div class="grid">
+          <div class="stat"><div class="stat-label">${t('trial')}</div><div class="stat-value">${state.trialIndex + 1}/${totalTrials}</div></div>
+          <div class="stat"><div class="stat-label">${t('answered')}</div><div class="stat-value">${answered}</div></div>
+          <div class="stat"><div class="stat-label">${t('correct')}</div><div class="stat-value">${correct}</div></div>
+          <div class="stat"><div class="stat-label">${t('accuracy')}</div><div class="stat-value">${acc}</div></div>
+        </div>
+        <div class="stimulus"><div class="arrow">${state.currentStimulus.symbol}</div></div>
+        <p class="muted">${t('pressOpposite')}</p>
+      `;
+      attachLangToggle();
+    }
+
+    function handleKey(event) {
+      if (!state.waitingForResponse) return;
+      if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)) return;
+      const rt = Math.round(performance.now() - state.trialStart);
+      const correct = event.key === state.currentStimulus.correct;
+      state.results.push({
+        participantId: state.participantId,
+        condition: state.feedbackMode,
+        blockIndex: state.inPractice ? -1 : state.blockIndex,
+        practice: state.inPractice,
+        trial: state.trialIndex + 1,
+        stimulus: state.currentStimulus.symbol,
+        correctKey: state.currentStimulus.correct,
+        responseKey: event.key,
+        correct,
+        rtMs: rt,
+        timestamp: new Date().toISOString()
+      });
+      state.waitingForResponse = false;
+      state.trialIndex += 1;
+      setTimeout(nextTrial, CONFIG.interTrialMs);
+    }
+
+    function endBlock() {
+      if (state.inPractice) {
+        state.phase = 'between';
+        renderBetween(true);
+        return;
+      }
+      if (state.blockIndex === 0) {
+        state.blockIndex = 1;
+        state.phase = 'between';
+        renderBetween(false);
+      } else {
+        state.phase = 'complete';
+        renderComplete();
+        uploadParticipantResults();
+      }
+    }
+
+    function renderBetween(afterPractice) {
+      const message = afterPractice ? t('practiceComplete') : t('block1Complete');
+      const orderText = `${state.conditionOrder[0] === 'numeric' ? t('numeric') : t('bar')} → ${state.conditionOrder[1] === 'numeric' ? t('numeric') : t('bar')}`;
+      screen.innerHTML = `
+        <div class="topbar">
+          <div>
+            <p class="muted">${afterPractice ? t('practiceRound') : t('block')}</p>
+            <h2>${message}</h2>
+          </div>
+          ${headerControls()}
+        </div>
+        <div class="card">
+          <p>${t('orderText')} <strong>${orderText}</strong>.</p>
+        </div>
+        <div class="row" style="margin-top:18px;">
+          <button id="nextBtn">${afterPractice ? t('startBlock1') : t('startBlock2')}</button>
+        </div>
+      `;
+      attachLangToggle();
+      document.getElementById('nextBtn').addEventListener('click', () => startBlock(false));
+    }
+
+    function summarizeCondition(condition) {
+      const rows = state.results.filter(r => !r.practice && r.participantId === state.participantId && r.condition === condition);
+      const correctRows = rows.filter(r => r.correct);
+      const meanRT = correctRows.length ? Math.round(correctRows.reduce((a,b) => a + b.rtMs, 0) / correctRows.length) : 0;
+      const accuracy = rows.length ? correctRows.length / rows.length : 0;
+      return { meanRT, accuracy, attempted: rows.length };
+    }
+
+    async function uploadParticipantResults() {
+      if (!CONFIG.enableUpload || !CONFIG.googleScriptUrl) {
+        state.uploadStatus = 'not_connected';
+        if (state.phase === 'complete') renderComplete();
+        return;
+      }
+      try {
+        const payload = {
+          participantId: state.participantId,
+          order: state.conditionOrder.join('->'),
+          practiceTrials: CONFIG.practiceTrials,
+          blockTrials: CONFIG.blockTrials,
+          numericSummary: summarizeCondition('numeric'),
+          barSummary: summarizeCondition('bar'),
+          trialData: state.results.filter(r => r.participantId === state.participantId)
+        };
+        const res = await fetch(CONFIG.googleScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        state.uploadStatus = res.ok ? 'success' : 'fail';
+      } catch (e) {
+        state.uploadStatus = 'fail';
+      }
+      if (state.phase === 'complete') renderComplete();
+    }
+
+    function uploadMessage() {
+      if (state.uploadStatus === 'success') return `<span class="success">${t('uploadStatusSuccess')}</span>`;
+      if (state.uploadStatus === 'fail') return `<span class="warning">${t('uploadStatusFail')}</span>`;
+      return `<span class="muted">${t('uploadStatusReady')}</span>`;
+    }
+
+    function renderComplete() {
+      const numeric = summarizeCondition('numeric');
+      const bar = summarizeCondition('bar');
+      screen.innerHTML = `
+        <div class="topbar">
+          <div>
+            <p class="muted">${t('complete')}</p>
+            <h2>${t('thankYou')}</h2>
+          </div>
+          ${headerControls()}
+        </div>
+        <p>${t('yourResults')}</p>
+        <div class="grid">
+          <div class="stat"><div class="stat-label">${t('numeric')} ${t('meanRT')}</div><div class="stat-value">${numeric.meanRT} ms</div></div>
+          <div class="stat"><div class="stat-label">${t('numeric')} ${t('accuracy')}</div><div class="stat-value">${Math.round(numeric.accuracy * 100)}%</div></div>
+          <div class="stat"><div class="stat-label">${t('bar')} ${t('meanRT')}</div><div class="stat-value">${bar.meanRT} ms</div></div>
+          <div class="stat"><div class="stat-label">${t('bar')} ${t('accuracy')}</div><div class="stat-value">${Math.round(bar.accuracy * 100)}%</div></div>
+        </div>
+        <div class="card">
+          <p><strong>${t('participantLabel')}:</strong> ${state.participantId}</p>
+          <p><strong>${t('uploaded')}:</strong> ${uploadMessage()}</p>
+          <p class="muted">${t('noOthers')}</p>
+        </div>
+        <div class="row" style="margin-top:18px;">
+          <button class="secondary" id="restartBtn">${t('restart')}</button>
+        </div>
+      `;
+      attachLangToggle();
+      document.getElementById('restartBtn').addEventListener('click', () => location.reload());
+    }
+
+    window.addEventListener('keydown', handleKey);
+    renderIntro();
+  </script>
+</body>
+</html>
