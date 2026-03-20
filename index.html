@@ -315,6 +315,20 @@
       width: 88px;
       height: 88px;
     }
+    .mobile-stats {
+      display: none;
+    }
+    .trial-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .trial-copy p {
+      margin-bottom: 0;
+    }
+    .mobile-touchdock {
+      display: contents;
+    }
     .touch-btn {
       width: 88px;
       height: 88px;
@@ -352,13 +366,55 @@
     }
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
-      .app { width: calc(100vw - 20px); min-height: calc(100vh - 20px); padding: 18px; }
+      .app { width: calc(100vw - 20px); min-height: calc(100vh - 20px); padding: 14px 14px calc(16px + env(safe-area-inset-bottom)); }
+      .topbar { margin-bottom: 10px; align-items: center; }
+      .topbar h2 { font-size: 1.35rem; margin-bottom: 0; }
+      .topbar .muted { font-size: 0.92rem; }
+      .main-layout { gap: 10px; min-height: auto; }
       .stat { min-height: 92px; }
       .stat-value { font-size: 1.8rem; }
-      .completed-answer-top .done-number { font-size: 3.6rem; }
-      .completed-answer-top .total-number { font-size: 1.1rem; }
-      .stimulus { min-height: 320px; }
-      .arrow { font-size: min(34vw, 9rem); }
+      .feedback-panel { min-height: 82px; padding: 14px 16px; border-radius: 16px; }
+      .feedback-label { font-size: 0.98rem; margin-bottom: 6px; }
+      .completed-answer-top .done-number { font-size: 3.3rem; }
+      .completed-answer-top .total-number { font-size: 1rem; }
+      .stimulus { min-height: 250px; border-radius: 20px; }
+      .arrow { font-size: min(30vw, 8rem); }
+      .mobile-stats {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .mobile-stats .pill {
+        white-space: nowrap;
+        color: var(--text);
+        border-color: rgba(148, 163, 184, 0.25);
+        background: rgba(255,255,255,0.04);
+      }
+      .touch-layout .grid { display: none; }
+      .touch-layout .trial-copy { gap: 2px; }
+      .touch-layout .trial-copy p { font-size: 0.96rem; line-height: 1.45; }
+      .mobile-touchdock {
+        display: block;
+        position: sticky;
+        bottom: 0;
+        margin-top: auto;
+        padding: 12px 0 calc(8px + env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.92) 18%, rgba(15, 23, 42, 1) 100%);
+      }
+      .touchpad-wrap { margin-top: 0; }
+      .touchpad {
+        width: min(100%, 360px);
+        grid-template-columns: repeat(3, minmax(84px, 1fr));
+        grid-template-rows: 94px 94px;
+        gap: 10px;
+      }
+      .touch-btn,
+      .touchpad-empty {
+        width: 100%;
+        height: 94px;
+      }
       .transition-screen { min-height: calc(100vh - 150px); padding-top: 4px; }
       .transition-panel { min-height: calc(100vh - 210px); border-radius: 22px; padding: 24px 20px; }
       .transition-actions { justify-content: stretch; }
@@ -378,8 +434,8 @@
       interTrialMs: 300,
       countdownSeconds: 3,
       autosaveEveryTrials: 10,
-      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbxby9sQAFVlj_0iKi5aZaR8wQwTNgSaEhz5IoW0yAL-7v5gir-cjYP3Wyo-RH_IkLhf/exec',
-      enableUpload: true,
+      googleScriptUrl: '',
+      enableUpload: false,
       stimuli: [
         { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown' },
         { key: 'ArrowDown', symbol: '↓', correct: 'ArrowUp' },
@@ -846,6 +902,29 @@
         ? `<div class="feedback-panel"><div class="feedback-label">${t('numericDisplay')}</div></div>`
         : `<div class="feedback-panel"><div class="feedback-label">${t('barDisplay')}</div><div class="progress-shell"><div class="progress-fill" style="width:${progressPct}%"></div></div></div>`);
 
+      const statsSection = state.inputMode === 'touch'
+        ? `<div class="mobile-stats"><span class="pill">${t('accuracy')}: ${acc}</span><span class="pill">${t('meanRT')}: ${meanRT}</span><span class="pill">${t('elapsed')}: ${elapsed}</span></div>`
+        : `<div class="grid"><div class="stat"><div class="stat-label">${t('accuracy')}</div><div class="stat-value">${acc}</div></div><div class="stat"><div class="stat-label">${t('meanRT')}</div><div class="stat-value">${meanRT}</div></div><div class="stat"><div class="stat-label">${t('elapsed')}</div><div class="stat-value">${elapsed}</div></div></div>`;
+
+      const instructionHtml = state.inputMode === 'touch'
+        ? `<div class="trial-copy"><p class="muted">${t('touchHint')}</p></div>`
+        : `<div class="trial-copy"><p class="muted">${t('pressOpposite')}</p></div>`;
+
+      const touchControls = state.inputMode === 'touch' ? `
+            <div class="mobile-touchdock">
+              <div class="touchpad-wrap">
+                <div class="touchpad">
+                  <div class="touchpad-empty"></div>
+                  <button class="touch-btn" data-key="ArrowUp" aria-label="Up">↑</button>
+                  <div class="touchpad-empty"></div>
+                  <button class="touch-btn" data-key="ArrowLeft" aria-label="Left">←</button>
+                  <button class="touch-btn" data-key="ArrowDown" aria-label="Down">↓</button>
+                  <button class="touch-btn" data-key="ArrowRight" aria-label="Right">→</button>
+                </div>
+              </div>
+            </div>
+          ` : '';
+
       screen.innerHTML = `
         <div class="topbar">
           <div>
@@ -854,30 +933,14 @@
           </div>
           ${headerControls()}
         </div>
-        <div class="main-layout">
-          <div class="grid">
-            <div class="stat"><div class="stat-label">${t('accuracy')}</div><div class="stat-value">${acc}</div></div>
-            <div class="stat"><div class="stat-label">${t('meanRT')}</div><div class="stat-value">${meanRT}</div></div>
-            <div class="stat"><div class="stat-label">${t('elapsed')}</div><div class="stat-value">${elapsed}</div></div>
-          </div>
+        <div class="main-layout ${state.inputMode === 'touch' ? 'touch-layout' : ''}">
+          ${statsSection}
           ${feedbackPanel}
           ${milestoneMessage ? `<div class="milestone-banner">${milestoneMessage}</div>` : ''}
           ${numericAboveArrow}
           <div class="stimulus"><div class="arrow">${state.currentStimulus.symbol}</div></div>
-          <p class="muted">${t('pressOpposite')}</p>
-          ${state.inputMode === 'touch' ? `
-            <p class="muted">${t('touchHint')}</p>
-            <div class="touchpad-wrap">
-              <div class="touchpad">
-                <div class="touchpad-empty"></div>
-                <button class="touch-btn" data-key="ArrowUp" aria-label="Up">↑</button>
-                <div class="touchpad-empty"></div>
-                <button class="touch-btn" data-key="ArrowLeft" aria-label="Left">←</button>
-                <button class="touch-btn" data-key="ArrowDown" aria-label="Down">↓</button>
-                <button class="touch-btn" data-key="ArrowRight" aria-label="Right">→</button>
-              </div>
-            </div>
-          ` : ''}
+          ${instructionHtml}
+          ${touchControls}
         </div>
       `;
       attachLangToggle();
@@ -1036,9 +1099,9 @@
         const res = await fetch(CONFIG.googleScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          keepalive: true
         });
-
         state.uploadStatus = res.ok ? 'success' : 'fail';
       } catch (e) {
         state.uploadStatus = 'fail';
