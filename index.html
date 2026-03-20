@@ -1036,9 +1036,9 @@
         const res = await fetch(CONFIG.googleScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          keepalive: true
+          body: JSON.stringify(payload)
         });
+
         state.uploadStatus = res.ok ? 'success' : 'fail';
       } catch (e) {
         state.uploadStatus = 'fail';
