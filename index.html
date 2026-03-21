@@ -601,6 +601,7 @@
       trialStart: null,
       blockStartTime: null,
       results: [],
+      uploadedTrialCount: 0,
       inPractice: false,
       feedbackMode: null,
       uploadStatus: 'idle',
@@ -1058,6 +1059,39 @@
       return { meanRT, accuracy, attempted: rows.length, score };
     }
 
+    function getParticipantTrialRows() {
+      return state.results.filter((r) => r.participantId === state.participantId && r.sessionId === state.sessionId);
+    }
+
+    function getPendingTrialRows() {
+      return getParticipantTrialRows().slice(state.uploadedTrialCount);
+    }
+
+    function buildUploadPayload(isPartial, trialData) {
+      const numericSummary = summarizeCondition('numeric');
+      const barSummary = summarizeCondition('bar');
+      return {
+        participantId: state.participantId,
+        nickname: state.nickname,
+        sessionId: state.sessionId,
+        deviceType: state.deviceType,
+        inputMode: state.inputMode,
+        soundEnabled: state.soundEnabled,
+        joinLeaderboard: state.joinLeaderboard,
+        order: state.conditionOrder.join('->'),
+        practiceTrials: CONFIG.practiceTrials,
+        blockTrials: CONFIG.blockTrials,
+        partialSave: isPartial,
+        uploadMode: 'chunk',
+        uploadedTrialCount: state.uploadedTrialCount,
+        totalTrialCount: getParticipantTrialRows().length,
+        numericSummary,
+        barSummary,
+        finalScore: Math.max(numericSummary.score, barSummary.score),
+        trialData
+      };
+    }
+
     async function fetchLeaderboard() {
       if (!CONFIG.enableUpload || !CONFIG.googleScriptUrl) return;
       try {
@@ -1076,37 +1110,31 @@
         if (state.phase === 'complete') renderComplete();
         return;
       }
+
+      const participantRows = getParticipantTrialRows();
+      const pendingTrialRows = participantRows.slice(state.uploadedTrialCount);
+
       try {
-        const numericSummary = summarizeCondition('numeric');
-        const barSummary = summarizeCondition('bar');
-        const payload = {
-          participantId: state.participantId,
-          nickname: state.nickname,
-          sessionId: state.sessionId,
-          deviceType: state.deviceType,
-          inputMode: state.inputMode,
-          soundEnabled: state.soundEnabled,
-          joinLeaderboard: state.joinLeaderboard,
-          order: state.conditionOrder.join('->'),
-          practiceTrials: CONFIG.practiceTrials,
-          blockTrials: CONFIG.blockTrials,
-          partialSave: isPartial,
-          numericSummary,
-          barSummary,
-          finalScore: Math.max(numericSummary.score, barSummary.score),
-          trialData: state.results.filter((r) => r.participantId === state.participantId)
-        };
+        const payload = buildUploadPayload(isPartial, pendingTrialRows);
         const res = await fetch(CONFIG.googleScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          keepalive: true
+          body: JSON.stringify(payload)
         });
-        state.uploadStatus = res.ok ? 'success' : 'fail';
+        const data = await res.json().catch(() => null);
+        const uploadOk = res.ok && data && data.status === 'ok';
+
+        if (uploadOk) {
+          state.uploadedTrialCount = participantRows.length;
+          state.uploadStatus = 'success';
+        } else {
+          state.uploadStatus = 'fail';
+        }
       } catch (e) {
         state.uploadStatus = 'fail';
       }
-      if (!isPartial) await fetchLeaderboard();
+
+      if (!isPartial && state.uploadStatus === 'success') await fetchLeaderboard();
       if (state.phase === 'complete') renderComplete();
     }
 
@@ -1195,25 +1223,9 @@
     window.addEventListener('keydown', handleKey);
     window.addEventListener('beforeunload', () => {
       if (CONFIG.enableUpload && CONFIG.googleScriptUrl && state.results.length > 0) {
-        const numericSummary = summarizeCondition('numeric');
-        const barSummary = summarizeCondition('bar');
-        const payload = {
-          participantId: state.participantId,
-          nickname: state.nickname,
-          sessionId: state.sessionId,
-          deviceType: state.deviceType,
-          inputMode: state.inputMode,
-          soundEnabled: state.soundEnabled,
-          joinLeaderboard: state.joinLeaderboard,
-          order: state.conditionOrder.join('->'),
-          practiceTrials: CONFIG.practiceTrials,
-          blockTrials: CONFIG.blockTrials,
-          partialSave: true,
-          numericSummary,
-          barSummary,
-          finalScore: Math.max(numericSummary.score, barSummary.score),
-          trialData: state.results.filter((r) => r.participantId === state.participantId)
-        };
+        const pendingTrialRows = getPendingTrialRows();
+        if (!pendingTrialRows.length) return;
+        const payload = buildUploadPayload(true, pendingTrialRows);
         navigator.sendBeacon(
           CONFIG.googleScriptUrl,
           new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=utf-8' })
