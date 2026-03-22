@@ -10,9 +10,9 @@ const TRIAL_HEADERS = [
 
 const LEADERBOARD_HEADERS = [
   'participantId', 'nickname', 'sessionId', 'deviceType', 'inputMode', 'soundEnabled', 'joinLeaderboard',
-  'order', 'partialSave',
-  'numericMeanRT', 'numericAccuracy', 'numericScore',
-  'barMeanRT', 'barAccuracy', 'barScore',
+  'order', 'partialSave', 'blockSeconds',
+  'numericMeanRT', 'numericAccuracy', 'numericScore', 'numericCompleted',
+  'barMeanRT', 'barAccuracy', 'barScore', 'barCompleted',
   'finalScore', 'updatedAt'
 ];
 
@@ -29,7 +29,12 @@ function doPost(e) {
     const leaderboardSheet = getOrCreateSheet_(ss, LEADERBOARD_SHEET_NAME, LEADERBOARD_HEADERS);
 
     upsertLeaderboardRow_(leaderboardSheet, buildLeaderboardRecord_(data, now));
-    replaceTrialRows_(trialsSheet, data.participantId || '', data.sessionId || '', data.trialData || [], now);
+
+    if (String(data.uploadMode || '') === 'replace_all' || truthy_(data.replaceAllTrials)) {
+      replaceTrialRows_(trialsSheet, data.participantId || '', data.sessionId || '', data.trialData || [], now);
+    } else {
+      upsertTrialChunk_(trialsSheet, data.trialData || [], now);
+    }
 
     return jsonResponse_({ status: 'ok' });
   } catch (err) {
@@ -65,17 +70,20 @@ function getLeaderboardEntries_() {
     .filter(row => truthy_(row.joinLeaderboard))
     .filter(row => !truthy_(row.partialSave))
     .forEach(row => {
+      const numericScore = safeNum_(row.numericScore);
+      const barScore = safeNum_(row.barScore);
       const entry = {
         participantId: row.participantId || '',
         nickname: row.nickname || '',
         score: safeNum_(row.finalScore),
         accuracy: Math.max(safeNum_(row.numericAccuracy), safeNum_(row.barAccuracy)),
         meanRT: pickBestRT_(
-          safeNum_(row.numericScore),
+          numericScore,
           safeNum_(row.numericMeanRT),
-          safeNum_(row.barScore),
+          barScore,
           safeNum_(row.barMeanRT)
         ),
+        completed: numericScore >= barScore ? safeNum_(row.numericCompleted) : safeNum_(row.barCompleted),
         updatedAt: row.updatedAt || ''
       };
 
@@ -101,7 +109,43 @@ function replaceTrialRows_(sheet, participantId, sessionId, trialData, now) {
     return !(String(row.participantId) === String(participantId) && String(row.sessionId) === String(sessionId));
   });
 
-  const newRows = (trialData || []).map(row => ({
+  const newRows = (trialData || []).map(row => buildTrialRecord_(row, now));
+  const allRows = keptRows.concat(newRows).map(obj => TRIAL_HEADERS.map(header => obj[header] ?? ''));
+  rewriteSheet_(sheet, TRIAL_HEADERS, allRows);
+}
+
+function upsertTrialChunk_(sheet, trialData, now) {
+  normalizeSheetHeaders_(sheet, TRIAL_HEADERS);
+
+  const existingRows = readSheetObjects_(sheet, TRIAL_HEADERS);
+  const nextRows = [];
+  const indexByKey = new Map();
+
+  existingRows.forEach(row => {
+    const key = trialRowKey_(row);
+    if (!key) return;
+    indexByKey.set(key, nextRows.length);
+    nextRows.push(row);
+  });
+
+  (trialData || []).forEach(row => {
+    const record = buildTrialRecord_(row, now);
+    const key = trialRowKey_(record);
+    if (!key) return;
+
+    if (indexByKey.has(key)) {
+      nextRows[indexByKey.get(key)] = record;
+    } else {
+      indexByKey.set(key, nextRows.length);
+      nextRows.push(record);
+    }
+  });
+
+  rewriteSheet_(sheet, TRIAL_HEADERS, nextRows.map(row => TRIAL_HEADERS.map(header => row[header] ?? '')));
+}
+
+function buildTrialRecord_(row, now) {
+  return {
     participantId: row.participantId || '',
     nickname: row.nickname || '',
     sessionId: row.sessionId || '',
@@ -121,10 +165,20 @@ function replaceTrialRows_(sheet, participantId, sessionId, trialData, now) {
     elapsedMsInBlock: safeNum_(row.elapsedMsInBlock),
     timestamp: row.timestamp || '',
     savedAt: now
-  }));
+  };
+}
 
-  const allRows = keptRows.concat(newRows).map(obj => TRIAL_HEADERS.map(header => obj[header] ?? ''));
-  rewriteSheet_(sheet, TRIAL_HEADERS, allRows);
+function trialRowKey_(row) {
+  if (!row || !row.sessionId || row.trial === '' || row.trial === null || typeof row.trial === 'undefined') {
+    return '';
+  }
+  return [
+    row.participantId || '',
+    row.sessionId || '',
+    truthy_(row.practice) ? 'practice' : 'main',
+    row.condition || '',
+    String(row.trial)
+  ].join('__');
 }
 
 function upsertLeaderboardRow_(sheet, obj) {
@@ -159,12 +213,15 @@ function buildLeaderboardRecord_(data, now) {
     joinLeaderboard: truthy_(data.joinLeaderboard),
     order: data.order || '',
     partialSave: truthy_(data.partialSave),
+    blockSeconds: safeNum_(data.blockSeconds),
     numericMeanRT: safeNum_(data.numericSummary && data.numericSummary.meanRT),
     numericAccuracy: safeNum_(data.numericSummary && data.numericSummary.accuracy),
     numericScore: safeNum_(data.numericSummary && data.numericSummary.score),
+    numericCompleted: safeNum_(data.numericSummary && (data.numericSummary.completed ?? data.numericSummary.attempted)),
     barMeanRT: safeNum_(data.barSummary && data.barSummary.meanRT),
     barAccuracy: safeNum_(data.barSummary && data.barSummary.accuracy),
     barScore: safeNum_(data.barSummary && data.barSummary.score),
+    barCompleted: safeNum_(data.barSummary && (data.barSummary.completed ?? data.barSummary.attempted)),
     finalScore: safeNum_(data.finalScore),
     updatedAt: now
   };
@@ -205,7 +262,9 @@ function readSheetObjects_(sheet, headers) {
   if (lastRow <= 1) return [];
 
   const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
-  return values.map(row => rowToObject_(headers, row));
+  return values
+    .map(row => rowToObject_(headers, row))
+    .filter(row => Object.values(row).some(value => value !== '' && value !== null));
 }
 
 function rewriteSheet_(sheet, headers, rows) {
@@ -255,4 +314,12 @@ function jsonResponse_(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function resetExperimentData_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const trialsSheet = getOrCreateSheet_(ss, TRIAL_SHEET_NAME, TRIAL_HEADERS);
+  const leaderboardSheet = getOrCreateSheet_(ss, LEADERBOARD_SHEET_NAME, LEADERBOARD_HEADERS);
+  rewriteSheet_(trialsSheet, TRIAL_HEADERS, []);
+  rewriteSheet_(leaderboardSheet, LEADERBOARD_HEADERS, []);
 }
