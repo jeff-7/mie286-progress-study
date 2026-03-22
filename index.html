@@ -16,6 +16,7 @@
       --border: #1f2937;
       --warn: #fbbf24;
       --ok: #86efac;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -255,7 +256,80 @@
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, var(--accent2), var(--accent2-soft));
-      transition: width 0.12s linear;
+      transition: width 0.25s linear, background 0.25s linear;
+    }
+    .countdown-flash {
+      animation: countdownFlash 0.9s ease-in-out 1;
+    }
+    .bar-timer {
+      margin-top: 10px;
+      font-size: 1.9rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+    .stimulus-inner {
+      width: 100%;
+      min-height: inherit;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 24px 30px;
+    }
+    .trial-counter {
+      align-self: stretch;
+      text-align: center;
+      color: #dbe4f0;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .stage-progress-wrap {
+      margin-top: 6px;
+    }
+    .stage-progress-track {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      align-items: stretch;
+    }
+    .stage-progress-segment {
+      position: relative;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+    }
+    .stage-progress-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0%;
+      border-radius: inherit;
+      transition: width 0.25s linear;
+    }
+    .stage-progress-fill.practice { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .stage-progress-fill.block0 { background: linear-gradient(90deg, #22c55e, #86efac); }
+    .stage-progress-fill.block1 { background: linear-gradient(90deg, #38bdf8, #60a5fa); }
+    .stage-progress-labels {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.96rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .stage-progress-label {
+      min-width: 0;
+    }
+    .arrow.thick-arrow {
+      font-weight: 900;
+      text-shadow: 1.1px 0 0 currentColor, -1.1px 0 0 currentColor, 0 1.1px 0 currentColor, 0 -1.1px 0 currentColor;
+    }
+    @keyframes countdownFlash {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: 0.35; }
     }
     .stimulus {
       display: flex;
@@ -275,19 +349,66 @@
     }
     .success { color: var(--ok); }
     .warning { color: var(--warn); }
+    .leaderboard-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
     .leaderboard-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 12px;
+      margin-top: 4px;
     }
     .leaderboard-table th,
     .leaderboard-table td {
       border-bottom: 1px solid var(--border);
-      padding: 10px 8px;
+      padding: 12px 8px;
       text-align: left;
       font-size: 0.95rem;
+      vertical-align: middle;
     }
     .leaderboard-table th { color: var(--muted); font-weight: 600; }
+    .leaderboard-table tr.current-row {
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .leaderboard-rank-cell {
+      width: 82px;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+    }
+    .crown { font-size: 1rem; }
+    .crown.gold { color: #fbbf24; }
+    .crown.silver { color: #cbd5e1; }
+    .crown.bronze { color: #d97706; }
+    .leaderboard-self-tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #dbeafe;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.24);
+    }
+    .leaderboard-ellipsis td {
+      text-align: center;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.22em;
+    }
+    .leaderboard-rule {
+      color: #cbd5e1;
+      font-size: 0.94rem;
+      line-height: 1.6;
+      margin: 0;
+    }
     .pill {
       display: inline-block;
       font-size: 0.85rem;
@@ -366,59 +487,65 @@
     }
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
-      .app { width: calc(100vw - 20px); min-height: calc(100vh - 20px); padding: 14px 14px calc(16px + env(safe-area-inset-bottom)); }
-      .topbar { margin-bottom: 10px; align-items: center; }
+      .app { width: calc(100vw - 16px); min-height: calc(100vh - 16px); padding: 10px 10px calc(12px + env(safe-area-inset-bottom)); }
+      .topbar { margin-bottom: 6px; align-items: center; gap: 8px; }
       .topbar h2 { font-size: 1.35rem; margin-bottom: 0; }
       .topbar .muted { font-size: 0.92rem; }
-      .main-layout { gap: 10px; min-height: auto; }
+      .main-layout { gap: 6px; min-height: auto; }
       .stat { min-height: 92px; }
       .stat-value { font-size: 1.8rem; }
-      .feedback-panel { min-height: 82px; padding: 14px 16px; border-radius: 16px; }
-      .feedback-label { font-size: 0.98rem; margin-bottom: 6px; }
-      .completed-answer-top .done-number { font-size: 3.3rem; }
-      .completed-answer-top .total-number { font-size: 1rem; }
-      .stimulus { min-height: 250px; border-radius: 20px; }
-      .arrow { font-size: min(30vw, 8rem); }
+      .feedback-panel { min-height: 64px; padding: 10px 12px; border-radius: 16px; }
+      .feedback-label { font-size: 0.92rem; margin-bottom: 4px; }
+      .completed-answer-top .done-number { font-size: 3.65rem; }
+      .completed-answer-top .total-number { font-size: 0.92rem; }
+      .stimulus { min-height: 228px; border-radius: 20px; }
+      .arrow { font-size: min(28vw, 7.5rem); }
       .mobile-stats {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         overflow-x: auto;
         padding-bottom: 2px;
         -webkit-overflow-scrolling: touch;
       }
       .mobile-stats .pill {
         white-space: nowrap;
+        font-size: 0.8rem;
+        padding: 4px 8px;
         color: var(--text);
         border-color: rgba(148, 163, 184, 0.25);
         background: rgba(255,255,255,0.04);
       }
       .touch-layout .grid { display: none; }
-      .touch-layout .trial-copy { gap: 2px; }
-      .touch-layout .trial-copy p { font-size: 0.96rem; line-height: 1.45; }
+      .touch-layout .trial-copy { display: none; }
       .mobile-touchdock {
         display: block;
         position: sticky;
         bottom: 0;
         margin-top: auto;
-        padding: 12px 0 calc(8px + env(safe-area-inset-bottom));
+        padding: 8px 0 calc(6px + env(safe-area-inset-bottom));
         background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.92) 18%, rgba(15, 23, 42, 1) 100%);
       }
       .touchpad-wrap { margin-top: 0; }
       .touchpad {
-        width: min(100%, 360px);
+        width: min(100%, 338px);
         grid-template-columns: repeat(3, minmax(84px, 1fr));
-        grid-template-rows: 94px 94px;
-        gap: 10px;
+        grid-template-rows: 88px 88px;
+        gap: 8px;
       }
       .touch-btn,
       .touchpad-empty {
         width: 100%;
-        height: 94px;
+        height: 88px;
       }
       .transition-screen { min-height: calc(100vh - 150px); padding-top: 4px; }
       .transition-panel { min-height: calc(100vh - 210px); border-radius: 22px; padding: 24px 20px; }
       .transition-actions { justify-content: stretch; }
       .transition-actions button { width: 100%; min-width: 0; min-height: 60px; font-size: 1.1rem; }
+      .stage-progress-segment { height: 10px; }
+      .stage-progress-labels { font-size: 0.8rem; margin-top: 6px; }
+      .stage-progress-wrap { margin-top: 2px; }
+      .trial-counter { font-size: 1.18rem; }
+      .stimulus-inner { padding: 14px 16px 18px; }
     }
   </style>
 </head>
@@ -431,10 +558,12 @@
     const CONFIG = {
       practiceTrials: 10,
       blockTrials: 100,
+      practiceDurationMs: 12000,
+      blockDurationMs: 100000,
       interTrialMs: 300,
       countdownSeconds: 3,
       autosaveEveryTrials: 10,
-      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbx1j7py9fEx8kEd5jIgSV1F8cN65-assjA9dxv_gA945fZj-dCD8wsRf53wOAMaRIwU/exec',
+      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbxby9sQAFVlj_0iKi5aZaR8wQwTNgSaEhz5IoW0yAL-7v5gir-cjYP3Wyo-RH_IkLhf/exec',
       enableUpload: true,
       stimuli: [
         { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown' },
@@ -448,21 +577,21 @@
       en: {
         study: 'MIE286 Study',
         title: 'Direction Matching Game',
-        introLead: 'This study compares a numeric progress display and a visual progress bar while you complete an opposite-arrow task.',
+        introLead: 'This study compares two countdown feedback styles while you complete an opposite-arrow task: a numeric timer and a visual timer bar.',
         readBefore: 'Please read before continuing',
         bullets: [
           'You will complete 10 practice trials, then 2 main blocks.',
           'Each main block contains 100 trials, for a total of 200 main-task trials.',
-          'The full session takes about 8 minutes.',
+          'The full session takes about 5 minutes.',
           'Press the opposite arrow key of the arrow shown on screen.',
-          'The two feedback styles are Numeric Progress and Progress Bar.',
+          'The two feedback styles are Numeric Countdown and Countdown Progress Bar.',
           'Your reaction time and accuracy will be recorded automatically.',
           'If you agree, your nickname may appear on a leaderboard shown only to participants who opted in.'
         ],
         consent: 'I agree to participate anonymously for the MIE286 course project. (Required to start)',
         soundConsent: 'Enable optional sound effects to make the task feel more interactive.',
         leaderboardConsent: 'I agree to join the optional leaderboard. Optional: if unchecked, you will not join the leaderboard and will not see leaderboard results.',
-        soundHint: 'If enabled, each response uses the same soft key-tap sound. Every 20 trials, an extra gentle bingo sound is added.',
+        soundHint: 'If enabled, each response uses a soft key-tap sound. The timer flashes once at 1 minute remaining, and a warning beep repeats during the last 30 seconds.',
         nicknameLabel: 'Nickname (optional)',
         nicknamePlaceholder: 'Enter a nickname or leave blank',
         participantLabel: 'Participant ID',
@@ -470,7 +599,7 @@
         continue: 'Continue to Practice →',
         warmup: 'Warm-up Round',
         practiceFirst: 'Practice first',
-        practiceDesc: 'You will complete 10 practice trials. These do not count toward the final results.',
+        practiceDesc: 'You will complete 10 practice trials within 12 seconds. These do not count toward the final results.',
         rule: 'Rule:',
         ruleText: 'if you see ↑, press ↓. If you see ←, press →, and so on.',
         cogLoad: 'This opposite-response rule adds cognitive load so the task is not too easy.',
@@ -480,10 +609,10 @@
         of: 'of',
         getReady: 'Get Ready',
         feedback: 'Feedback',
-        numeric: 'Numeric Progress',
-        bar: 'Progress Bar',
-        numericDisplay: 'Completed',
-        barDisplay: 'Task Progress',
+        numeric: 'Numeric Countdown',
+        bar: 'Countdown Bar',
+        numericDisplay: 'Time Remaining',
+        barDisplay: 'Time Remaining',
         accuracy: 'Accuracy',
         meanRT: 'Mean RT',
         elapsed: 'Elapsed',
@@ -506,6 +635,9 @@
         leaderboardTitle: 'Optional Leaderboard',
         leaderboardDesc: 'Only participants who opted in are shown below.',
         noLeaderboard: 'No leaderboard entries available yet.',
+        leaderboardCurrent: 'You',
+        leaderboardRuleTitle: 'Scoring rule',
+        leaderboardRule: 'Leaderboard rank uses your better single main block, not a combined two-block score. Score = accuracy × 100000 ÷ mean RT. Because feedback order is randomized, this may correspond to Trial 1 or Trial 2 depending on the assigned order.',
         rank: 'Rank',
         name: 'Name',
         score: 'Score',
@@ -518,21 +650,21 @@
       zh: {
         study: 'MIE286 实验',
         title: '方向匹配任务',
-        introLead: '本实验比较两种任务进度反馈方式：数字进度显示和可视化进度条，并要求你完成相反方向按键任务。',
+        introLead: '本实验比较两种倒计时反馈方式：数字倒计时与可视化倒计时进度条，并要求你完成相反方向按键任务。',
         readBefore: '继续之前请先阅读',
         bullets: [
           '你将先完成 10 道练习题，再完成 2 个正式模块。',
           '每个正式模块包含 100 道题，总计 200 道正式题目。',
-          '整个实验大约需要 8 分钟。',
+          '整个实验大约需要 5 分钟。',
           '每一道题都要按下屏幕箭头的相反方向键。',
-          '实验有两种反馈方式：数字进度 和 进度条。',
+          '实验有两种反馈方式：数字倒计时 和 倒计时进度条。',
           '系统会自动记录反应时间和正确率。',
           '如果你同意加入积分榜，你的昵称可能会出现在仅对同意者显示的排行榜里。'
         ],
         consent: '我同意以匿名方式参加 MIE286 课程项目实验。（必选，否则无法开始）',
         soundConsent: '开启可选音效，让任务更有互动感。',
         leaderboardConsent: '我同意加入可选积分榜。可选；如果不勾选，则不会加入积分榜，也看不到他人成绩。',
-        soundHint: '如果开启，每次作答都会播放同一种温和的“键盘敲击”音效；每 20 题会额外叠加一个轻微 bingo 提示音。',
+        soundHint: '如果开启，每次作答都会播放温和的“键盘敲击”音效；剩余 1 分钟时倒计时会闪烁一次，最后 30 秒会持续滴滴提示。',
         nicknameLabel: '昵称（可选）',
         nicknamePlaceholder: '可输入昵称，也可留空',
         participantLabel: '参与者编号',
@@ -540,7 +672,7 @@
         continue: '继续到练习 →',
         warmup: '热身练习',
         practiceFirst: '先进行练习',
-        practiceDesc: '你将完成 10 道练习题，这些题目不会计入最终结果。',
+        practiceDesc: '你需要在 12 秒内完成 10 道练习题，这些题目不会计入最终结果。',
         rule: '规则：',
         ruleText: '如果看到 ↑，就按 ↓；如果看到 ←，就按 →，其余同理。',
         cogLoad: '“按相反方向”的规则会增加一定认知负担，避免任务过于简单。',
@@ -550,10 +682,10 @@
         of: '/',
         getReady: '准备开始',
         feedback: '反馈方式',
-        numeric: '数字进度',
-        bar: '进度条',
-        numericDisplay: '已完成',
-        barDisplay: '任务进度',
+        numeric: '数字倒计时',
+        bar: '倒计时进度条',
+        numericDisplay: '剩余时间',
+        barDisplay: '剩余时间',
         accuracy: '正确率',
         meanRT: '平均反应时间',
         elapsed: '用时',
@@ -576,6 +708,9 @@
         leaderboardTitle: '可选积分榜',
         leaderboardDesc: '下面只显示同意加入积分榜的参与者。',
         noLeaderboard: '目前还没有可显示的积分榜记录。',
+        leaderboardCurrent: '你',
+        leaderboardRuleTitle: '积分规则',
+        leaderboardRule: '排行榜按两个正式模块中得分更高的那一个模块排序，不是两块合并成绩。积分 = 正确率 × 100000 ÷ 平均反应时。由于反馈顺序随机，这个成绩可能对应试验一，也可能对应试验二。',
         rank: '排名',
         name: '昵称',
         score: '得分',
@@ -612,7 +747,13 @@
       inputMode: ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'touch' : 'keyboard',
       soundEnabled: false,
       audioCtx: null,
-      betweenAfterPractice: true
+      betweenAfterPractice: true,
+      stageDeadline: null,
+      timerInterval: null,
+      minuteWarningFlashed: false,
+      countdownFlash: false,
+      warningSecondPlayed: null,
+      blockEnding: false
     };
 
     const screen = document.getElementById('screen');
@@ -683,6 +824,157 @@
       const min = String(Math.floor(totalSec / 60)).padStart(2, '0');
       const sec = String(totalSec % 60).padStart(2, '0');
       return `${min}:${sec}`;
+    }
+
+
+    function formatRemaining(ms) {
+      const totalSec = Math.max(0, Math.ceil(ms / 1000));
+      const min = String(Math.floor(totalSec / 60)).padStart(2, '0');
+      const sec = String(totalSec % 60).padStart(2, '0');
+      return `${min}:${sec}`;
+    }
+
+    function getStageDurationMs() {
+      return state.inPractice ? CONFIG.practiceDurationMs : CONFIG.blockDurationMs;
+    }
+
+    function getRemainingMs() {
+      if (!state.stageDeadline) return getStageDurationMs();
+      return Math.max(0, state.stageDeadline - performance.now());
+    }
+
+    function getCountdownColor(remainingMs, totalMs = getStageDurationMs()) {
+      const ratio = totalMs ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0;
+      const hue = 120 * ratio;
+      return `hsl(${hue} 82% 60%)`;
+    }
+
+
+    function getStageProgressMarkup() {
+      const segments = [
+        { key: 'practice', label: state.lang === 'zh' ? '练习' : 'Practice', weight: 1 },
+        { key: 'block0', label: state.lang === 'zh' ? '试验一' : 'Trial 1', weight: 10 },
+        { key: 'block1', label: state.lang === 'zh' ? '试验二' : 'Trial 2', weight: 10 }
+      ];
+      const fillFor = (key) => {
+        if (state.phase === 'complete') return 1;
+        if (key === 'practice') {
+          if (state.inPractice) return Math.min(1, state.trialIndex / CONFIG.practiceTrials);
+          return 1;
+        }
+        if (key === 'block0') {
+          if (state.inPractice) return 0;
+          if (state.blockIndex === 0) return Math.min(1, state.trialIndex / CONFIG.blockTrials);
+          if (state.blockIndex >= 1) return 1;
+          return 0;
+        }
+        if (key === 'block1') {
+          if (state.blockIndex === 1 && !state.inPractice && state.phase === 'trial') return Math.min(1, state.trialIndex / CONFIG.blockTrials);
+          if (state.phase === 'complete') return 1;
+          return 0;
+        }
+        return 0;
+      };
+      return `
+        <div class="stage-progress-wrap">
+          <div class="stage-progress-track">
+            ${segments.map(seg => `<div class="stage-progress-segment" style="flex:${seg.weight}"><div class="stage-progress-fill ${seg.key}" style="width:${fillFor(seg.key) * 100}%"></div></div>`).join('')}
+          </div>
+          <div class="stage-progress-labels">
+            ${segments.map(seg => `<div class="stage-progress-label" style="flex:${seg.weight}">${seg.label}</div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    function playWarningSound() {
+      if (!state.soundEnabled || !state.audioCtx) return;
+      const now = state.audioCtx.currentTime;
+      [0, 0.16].forEach((offset) => {
+        const osc = state.audioCtx.createOscillator();
+        const gain = state.audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1280, now + offset);
+        gain.gain.setValueAtTime(0.0001, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.012, now + offset + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.09);
+        osc.connect(gain);
+        gain.connect(state.audioCtx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.1);
+      });
+    }
+
+    function triggerCountdownFlash() {
+      state.countdownFlash = true;
+      updateLiveTimerUI();
+      setTimeout(() => {
+        state.countdownFlash = false;
+        updateLiveTimerUI();
+      }, 950);
+    }
+
+    function stopStageTimer() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+    }
+
+    function updateLiveTimerUI() {
+      if (state.phase !== 'trial') return;
+      const totalMs = getStageDurationMs();
+      const remainingMs = getRemainingMs();
+      const remainingText = formatRemaining(remainingMs);
+      const countdownColor = getCountdownColor(remainingMs, totalMs);
+      const progressPct = totalMs ? Math.max(0, (remainingMs / totalMs) * 100) : 0;
+      const timerNumber = document.getElementById('timerNumber');
+      const timerFill = document.getElementById('timerFill');
+      const timerBarText = document.getElementById('timerBarText');
+      const elapsedValue = document.getElementById('elapsedValue');
+      const flashTargets = document.querySelectorAll('[data-countdown-shell]');
+      if (timerNumber) {
+        timerNumber.textContent = remainingText;
+        timerNumber.style.color = countdownColor;
+      }
+      if (timerFill) {
+        timerFill.style.width = `${progressPct}%`;
+        timerFill.style.background = `linear-gradient(90deg, #22c55e 0%, ${countdownColor} 100%)`;
+      }
+      if (timerBarText) {
+        timerBarText.textContent = remainingText;
+        timerBarText.style.color = countdownColor;
+      }
+      if (elapsedValue) {
+        elapsedValue.textContent = formatElapsed(getElapsedMsForCurrentBlock());
+      }
+      flashTargets.forEach((el) => el.classList.toggle('countdown-flash', !!state.countdownFlash));
+    }
+
+    function startStageTimer() {
+      stopStageTimer();
+      state.stageDeadline = performance.now() + getStageDurationMs();
+      state.minuteWarningFlashed = false;
+      state.countdownFlash = false;
+      state.warningSecondPlayed = null;
+      state.blockEnding = false;
+      state.timerInterval = setInterval(() => {
+        if (state.phase !== 'trial' || state.blockEnding) return;
+        const remainingMs = getRemainingMs();
+        const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+        if (!state.inPractice && remainingMs <= 60000 && !state.minuteWarningFlashed) {
+          state.minuteWarningFlashed = true;
+          triggerCountdownFlash();
+        }
+        if (!state.inPractice && remainingSec <= 30 && remainingSec > 0 && state.warningSecondPlayed !== remainingSec) {
+          state.warningSecondPlayed = remainingSec;
+          playWarningSound();
+        }
+        updateLiveTimerUI();
+        if (remainingMs <= 0) {
+          state.waitingForResponse = false;
+          endBlock();
+        }
+      }, 250);
     }
 
     function getMilestoneMessage(totalTrials) {
@@ -841,6 +1133,7 @@
       state.phase = 'countdown';
       countdownThen(() => {
         state.blockStartTime = performance.now();
+        startStageTimer();
         nextTrial();
       });
     }
@@ -874,7 +1167,7 @@
 
     function nextTrial() {
       const totalTrials = state.inPractice ? CONFIG.practiceTrials : CONFIG.blockTrials;
-      if (state.trialIndex >= totalTrials) {
+      if (state.trialIndex >= totalTrials || getRemainingMs() <= 0) {
         endBlock();
         return;
       }
@@ -886,26 +1179,28 @@
     }
 
     function renderTrial(totalTrials) {
-      const progressPct = (state.trialIndex / totalTrials) * 100;
+      const displayMode = state.inPractice ? 'numeric' : state.feedbackMode;
+      const totalMs = getStageDurationMs();
+      const remainingMs = getRemainingMs();
+      const remainingText = formatRemaining(remainingMs);
+      const countdownColor = getCountdownColor(remainingMs, totalMs);
+      const progressPct = totalMs ? Math.max(0, (remainingMs / totalMs) * 100) : 0;
       const blockRows = state.results.filter((r) => r.participantId === state.participantId && r.condition === state.feedbackMode && !r.practice);
       const answered = blockRows.length;
       const correct = blockRows.filter((r) => r.correct).length;
       const acc = answered ? `${Math.round((correct / answered) * 100)}%` : '—';
       const meanRT = correct ? `${Math.round(blockRows.filter((r) => r.correct).reduce((sum, r) => sum + r.rtMs, 0) / correct)} ms` : '—';
       const elapsed = formatElapsed(getElapsedMsForCurrentBlock());
-      const milestoneMessage = getMilestoneMessage(totalTrials);
+      const currentQuestion = Math.min(state.trialIndex + 1, totalTrials);
+      const countLabel = state.lang === 'zh' ? `第 ${currentQuestion} / ${totalTrials} 题` : `Trial ${currentQuestion} / ${totalTrials}`;
 
-      const numericAboveArrow = state.feedbackMode === 'numeric'
-        ? `<div class="completed-answer-top"><div class="done-number">${state.trialIndex}</div><div class="total-number">/ ${totalTrials}</div></div>`
-        : '';
-
-      const feedbackPanel = state.inPractice ? '' : (state.feedbackMode === 'numeric'
-        ? `<div class="feedback-panel"><div class="feedback-label">${t('numericDisplay')}</div></div>`
-        : `<div class="feedback-panel"><div class="feedback-label">${t('barDisplay')}</div><div class="progress-shell"><div class="progress-fill" style="width:${progressPct}%"></div></div></div>`);
+      const timerDisplay = displayMode === 'numeric'
+        ? `<div class="completed-answer-top" data-countdown-shell><div class="done-number" id="timerNumber" style="color:${countdownColor}">${remainingText}</div><div class="total-number">${t('numericDisplay')}</div></div>`
+        : `<div class="feedback-panel" data-countdown-shell><div class="feedback-label">${t('barDisplay')}</div><div class="progress-shell"><div class="progress-fill" id="timerFill" style="width:${progressPct}%; background: linear-gradient(90deg, #22c55e 0%, ${countdownColor} 100%);"></div></div></div>`;
 
       const statsSection = state.inputMode === 'touch'
-        ? `<div class="mobile-stats"><span class="pill">${t('accuracy')}: ${acc}</span><span class="pill">${t('meanRT')}: ${meanRT}</span><span class="pill">${t('elapsed')}: ${elapsed}</span></div>`
-        : `<div class="grid"><div class="stat"><div class="stat-label">${t('accuracy')}</div><div class="stat-value">${acc}</div></div><div class="stat"><div class="stat-label">${t('meanRT')}</div><div class="stat-value">${meanRT}</div></div><div class="stat"><div class="stat-label">${t('elapsed')}</div><div class="stat-value">${elapsed}</div></div></div>`;
+        ? `<div class="mobile-stats"><span class="pill">${t('accuracy')}: ${acc}</span><span class="pill">${t('meanRT')}: ${meanRT}</span><span class="pill">${t('elapsed')}: <span id="elapsedValue">${elapsed}</span></span></div>`
+        : `<div class="grid"><div class="stat"><div class="stat-label">${t('accuracy')}</div><div class="stat-value">${acc}</div></div><div class="stat"><div class="stat-label">${t('meanRT')}</div><div class="stat-value">${meanRT}</div></div><div class="stat"><div class="stat-label">${t('elapsed')}</div><div class="stat-value" id="elapsedValue">${elapsed}</div></div></div>`;
 
       const instructionHtml = state.inputMode === 'touch'
         ? `<div class="trial-copy"><p class="muted">${t('touchHint')}</p></div>`
@@ -929,22 +1224,22 @@
       screen.innerHTML = `
         <div class="topbar">
           <div>
-            <p class="muted">${state.inPractice ? t('practiceRound') : `${t('feedback')}: ${state.feedbackMode === 'numeric' ? t('numeric') : t('bar')}`}</p>
+            <p class="muted">${state.inPractice ? t('practiceRound') : `${t('feedback')}: ${displayMode === 'numeric' ? t('numeric') : t('bar')}`}</p>
             <h2>${state.inPractice ? t('practiceRound') : `${t('block')} ${state.blockIndex + 1} ${t('of')} 2`}</h2>
           </div>
           ${headerControls()}
         </div>
         <div class="main-layout ${state.inputMode === 'touch' ? 'touch-layout' : ''}">
           ${statsSection}
-          ${feedbackPanel}
-          ${milestoneMessage ? `<div class="milestone-banner">${milestoneMessage}</div>` : ''}
-          ${numericAboveArrow}
-          <div class="stimulus"><div class="arrow">${state.currentStimulus.symbol}</div></div>
+          ${timerDisplay}
+          <div class="stimulus"><div class="stimulus-inner"><div class="trial-counter">${countLabel}</div><div class="arrow thick-arrow">${state.currentStimulus.symbol}</div><div></div></div></div>
           ${instructionHtml}
+          ${getStageProgressMarkup()}
           ${touchControls}
         </div>
       `;
       attachLangToggle();
+      updateLiveTimerUI();
       if (state.inputMode === 'touch') {
         document.querySelectorAll('.touch-btn').forEach((btn) => {
           const press = (e) => {
@@ -963,10 +1258,6 @@
       const rt = Math.round(performance.now() - state.trialStart);
       const correct = keyValue === state.currentStimulus.correct;
       playTapSound();
-      const completedAfterThis = state.trialIndex + 1;
-      if (!state.inPractice && completedAfterThis % 20 === 0) {
-        playMilestoneSound();
-      }
       state.results.push({
         participantId: state.participantId,
         nickname: state.nickname,
@@ -1001,6 +1292,9 @@
     }
 
     function endBlock() {
+      if (state.blockEnding) return;
+      state.blockEnding = true;
+      stopStageTimer();
       if (state.inPractice) {
         state.betweenAfterPractice = true;
         state.phase = 'between';
@@ -1146,16 +1440,38 @@
 
     function leaderboardHtml() {
       if (!state.joinLeaderboard) return '';
-      if (!state.leaderboard.length) {
+      const rows = Array.isArray(state.leaderboard) ? state.leaderboard : [];
+      if (!rows.length) {
         return `
-          <div class="card">
+          <div class="card leaderboard-panel">
             <h3>${t('leaderboardTitle')}</h3>
             <p class="muted">${t('leaderboardDesc')}</p>
             <p class="muted">${t('noLeaderboard')}</p>
+            <p class="leaderboard-rule"><strong>${t('leaderboardRuleTitle')}:</strong> ${t('leaderboardRule')}</p>
           </div>`;
       }
+
+      const ranked = rows.map((row, idx) => ({
+        ...row,
+        rank: idx + 1,
+        isCurrent: row.participantId === state.participantId
+      }));
+      const topFive = ranked.slice(0, 5);
+      const current = ranked.find((row) => row.isCurrent);
+      let displayRows = [...topFive];
+      if (current && current.rank > 5) {
+        displayRows.push({ type: 'ellipsis' }, current);
+      }
+
+      const crownForRank = (rank) => {
+        if (rank === 1) return '<span class="crown gold">♛</span>';
+        if (rank === 2) return '<span class="crown silver">♛</span>';
+        if (rank === 3) return '<span class="crown bronze">♛</span>';
+        return '';
+      };
+
       return `
-        <div class="card">
+        <div class="card leaderboard-panel">
           <h3>${t('leaderboardTitle')}</h3>
           <p class="muted">${t('leaderboardDesc')}</p>
           <table class="leaderboard-table">
@@ -1169,18 +1485,25 @@
               </tr>
             </thead>
             <tbody>
-              ${state.leaderboard.map((row, idx) => `
-                <tr>
-                  <td>${idx + 1}</td>
-                  <td>${row.nickname || row.participantId || 'Anonymous'}</td>
-                  <td>${row.score}</td>
-                  <td>${Math.round((row.accuracy || 0) * 100)}%</td>
-                  <td>${row.meanRT || 0} ms</td>
-                </tr>`).join('')}
+              ${displayRows.map((row) => {
+                if (row.type === 'ellipsis') {
+                  return `<tr class="leaderboard-ellipsis"><td colspan="5">...</td></tr>`;
+                }
+                return `
+                  <tr class="${row.isCurrent ? 'current-row' : ''}">
+                    <td class="leaderboard-rank-cell"><span class="rank-badge">${crownForRank(row.rank)}<span>${row.rank}</span></span></td>
+                    <td>${row.nickname || row.participantId || 'Anonymous'}${row.isCurrent ? `<span class="leaderboard-self-tag">${t('leaderboardCurrent')}</span>` : ''}</td>
+                    <td>${row.score}</td>
+                    <td>${Math.round((row.accuracy || 0) * 100)}%</td>
+                    <td>${row.meanRT || 0} ms</td>
+                  </tr>`;
+              }).join('')}
             </tbody>
           </table>
+          <p class="leaderboard-rule"><strong>${t('leaderboardRuleTitle')}:</strong> ${t('leaderboardRule')}</p>
         </div>`;
     }
+
 
     function renderComplete() {
       const numeric = summarizeCondition('numeric');
