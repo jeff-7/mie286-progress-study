@@ -563,7 +563,7 @@
       interTrialMs: 300,
       countdownSeconds: 3,
       autosaveEveryTrials: 10,
-      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbz0uSFTxruKagYlruW-fPIbVgfCi61GdyvF6swXtf-xZoGHGTUQp0Y4US-2EU71-vR0/exec',
+      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbxby9sQAFVlj_0iKi5aZaR8wQwTNgSaEhz5IoW0yAL-7v5gir-cjYP3Wyo-RH_IkLhf/exec',
       enableUpload: true,
       stimuli: [
         { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown' },
@@ -577,16 +577,14 @@
       en: {
         study: 'MIE286 Study',
         title: 'Direction Matching Game',
-        introLead: 'This study compares two countdown feedback styles while you complete an opposite-arrow task: a numeric timer and a visual timer bar.',
-        readBefore: 'Please read before continuing',
+        introLead: 'How many correct responses can you make in 100 seconds?',
+        readBefore: 'Before you begin',
         bullets: [
-          'You will complete 10 practice trials, then 2 main blocks.',
-          'Each main block contains 100 trials, for a total of 200 main-task trials.',
-          'The full session takes about 5 minutes.',
-          'Press the opposite arrow key of the arrow shown on screen.',
-          'The two feedback styles are Numeric Countdown and Countdown Progress Bar.',
-          'Your reaction time and accuracy will be recorded automatically.',
-          'If you agree, your nickname may appear on a leaderboard shown only to participants who opted in.'
+          'In laboratory finger-tapping tests, healthy adults in their 20s and 30s average about 300 simple taps per minute with the dominant index finger. But this challenge is harder.',
+          'Here, every arrow must be answered with the opposite direction. That means this is not just about speed — it is also about attention, judgment, and consistency.',
+          'You will complete two 100-second rounds. The task stays the same, but the countdown is displayed differently in each round.',
+          'We want to explore one question: Can the way time is shown affect how fast and how accurately you perform?',
+          'How many can you finish? How accurate can you stay? This time, the record will be written by you.'
         ],
         consent: 'I agree to participate anonymously for the MIE286 course project. (Required to start)',
         soundConsent: 'Enable optional sound effects to make the task feel more interactive.',
@@ -599,7 +597,7 @@
         continue: 'Continue to Practice →',
         warmup: 'Warm-up Round',
         practiceFirst: 'Practice first',
-        practiceDesc: 'You will complete 10 practice trials within 12 seconds. These do not count toward the final results.',
+        practiceDesc: 'You will have 10 practice opportunities before the two 100-second rounds. Practice does not count toward the final score.',
         rule: 'Rule:',
         ruleText: 'if you see ↑, press ↓. If you see ←, press →, and so on.',
         cogLoad: 'This opposite-response rule adds cognitive load so the task is not too easy.',
@@ -637,7 +635,7 @@
         noLeaderboard: 'No leaderboard entries available yet.',
         leaderboardCurrent: 'You',
         leaderboardRuleTitle: 'Scoring rule',
-        leaderboardRule: 'Leaderboard rank uses your better single main block, not a combined two-block score. Score = accuracy × 100000 ÷ mean RT. Because feedback order is randomized, this may correspond to Trial 1 or Trial 2 depending on the assigned order.',
+        leaderboardRule: 'Leaderboard rank uses your better single main block, not a combined two-block score. Score = Completed × Accuracy². Because feedback order is randomized, this may correspond to Trial 1 or Trial 2 depending on the assigned order.',
         rank: 'Rank',
         name: 'Name',
         score: 'Score',
@@ -650,16 +648,14 @@
       zh: {
         study: 'MIE286 实验',
         title: '方向匹配任务',
-        introLead: '本实验比较两种倒计时反馈方式：数字倒计时与可视化倒计时进度条，并要求你完成相反方向按键任务。',
-        readBefore: '继续之前请先阅读',
+        introLead: '100 秒内，你能完成多少次正确反应？',
+        readBefore: '开始之前',
         bullets: [
-          '你将先完成 10 道练习题，再完成 2 个正式模块。',
-          '每个正式模块包含 100 道题，总计 200 道正式题目。',
-          '整个实验大约需要 5 分钟。',
-          '每一道题都要按下屏幕箭头的相反方向键。',
-          '实验有两种反馈方式：数字倒计时 和 倒计时进度条。',
-          '系统会自动记录反应时间和正确率。',
-          '如果你同意加入积分榜，你的昵称可能会出现在仅对同意者显示的排行榜里。'
+          '在实验室的单指快速敲击测试中，健康成年人的优势手平均约可达到每分钟 300 次简单敲击。但在这里，事情没那么简单。',
+          '你看到的每一个箭头，都要求你按下相反方向的按键。这意味着你面对的不只是手速挑战，还有注意力、判断与稳定性的考验。',
+          '你将完成两个阶段的挑战，每个阶段 100 秒。两轮规则相同，但倒计时的呈现方式不同。',
+          '我们想研究的是：时间反馈的表达方式，会不会影响你的速度与准确率？',
+          '你能完成多少题？你的正确率能保持多高？这一次，记录将由你亲手写下。'
         ],
         consent: '我同意以匿名方式参加 MIE286 课程项目实验。（必选，否则无法开始）',
         soundConsent: '开启可选音效，让任务更有互动感。',
@@ -672,7 +668,7 @@
         continue: '继续到练习 →',
         warmup: '热身练习',
         practiceFirst: '先进行练习',
-        practiceDesc: '你需要在 12 秒内完成 10 道练习题，这些题目不会计入最终结果。',
+        practiceDesc: '正式挑战前你有 10 次练习机会。练习不计入最终得分。',
         rule: '规则：',
         ruleText: '如果看到 ↑，就按 ↓；如果看到 ←，就按 →，其余同理。',
         cogLoad: '“按相反方向”的规则会增加一定认知负担，避免任务过于简单。',
@@ -710,7 +706,7 @@
         noLeaderboard: '目前还没有可显示的积分榜记录。',
         leaderboardCurrent: '你',
         leaderboardRuleTitle: '积分规则',
-        leaderboardRule: '排行榜按两个正式模块中得分更高的那一个模块排序，不是两块合并成绩。积分 = 正确率 × 100000 ÷ 平均反应时。由于反馈顺序随机，这个成绩可能对应试验一，也可能对应试验二。',
+        leaderboardRule: '排行榜按两个正式模块中得分更高的那一个模块排序，不是两块合并成绩。积分 = 完成题数 × 正确率²。由于反馈顺序随机，这个成绩可能对应试验一，也可能对应试验二。',
         rank: '排名',
         name: '昵称',
         score: '得分',
@@ -1402,7 +1398,7 @@
       const correctRows = rows.filter((r) => r.correct);
       const meanRT = correctRows.length ? Math.round(correctRows.reduce((a, b) => a + b.rtMs, 0) / correctRows.length) : 0;
       const accuracy = rows.length ? correctRows.length / rows.length : 0;
-      const score = rows.length ? Math.round((accuracy * 100000) / Math.max(meanRT || 1, 1)) : 0;
+      const score = rows.length ? Number((rows.length * accuracy * accuracy).toFixed(2)) : 0;
       return { meanRT, accuracy, attempted: rows.length, score };
     }
 
