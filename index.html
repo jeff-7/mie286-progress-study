@@ -303,6 +303,13 @@
       width: 100%;
       padding-top: 42px;
     }
+    .current-arrow-wrap {
+      width: min(28vw, 16rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
     .stage-progress-wrap {
       margin-top: 6px;
     }
@@ -358,9 +365,15 @@
       align-items: center;
       gap: 4px;
       opacity: 0.5;
+      width: min(9vw, 4.5rem);
+      flex: 0 0 auto;
     }
     .preview-arrow-item .arrow {
       font-size: min(8vw, 3.5rem);
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .preview-arrow-item .preview-label {
       font-size: 0.7rem;
@@ -598,8 +611,14 @@
         gap: 10px;
         padding-top: 32px;
       }
+      .current-arrow-wrap {
+        width: min(30vw, 8.2rem);
+      }
       .preview-arrows {
         gap: 6px;
+      }
+      .preview-arrow-item {
+        width: min(11vw, 3.4rem);
       }
       .preview-arrow-item .arrow {
         font-size: min(6vw, 2.5rem);
@@ -819,6 +838,14 @@
 
     const screen = document.getElementById('screen');
     const t = (key) => I18N[state.lang][key];
+
+    function setScrollMode(enabled) {
+      document.documentElement.style.overflowY = enabled ? 'auto' : 'hidden';
+      document.body.style.overflowY = enabled ? 'auto' : 'hidden';
+      document.body.style.overflowX = 'hidden';
+      const app = document.querySelector('.app');
+      if (app) app.style.overflowY = enabled ? 'auto' : 'hidden';
+    }
 
     function initAudio() {
       if (!state.audioCtx) {
@@ -1169,6 +1196,7 @@
     }
 
     function renderIntro() {
+      setScrollMode(false);
       state.phase = 'intro';
       screen.innerHTML = `
         <div class="topbar">
@@ -1235,6 +1263,7 @@
     }
 
     function renderPracticeIntro() {
+      setScrollMode(false);
       state.phase = 'practiceIntro';
       screen.innerHTML = `
         <div class="topbar">
@@ -1281,6 +1310,7 @@
     }
 
     function countdownThen(cb) {
+      setScrollMode(false);
       let count = CONFIG.countdownSeconds;
       screen.innerHTML = `
         <div class="topbar">
@@ -1321,6 +1351,7 @@
     }
 
     function renderTrial() {
+      setScrollMode(false);
       const displayMode = state.inPractice ? 'numeric' : state.feedbackMode;
       const totalMs = getStageDurationMs();
       const remainingMs = getRemainingMs();
@@ -1376,7 +1407,7 @@
         <div class="main-layout ${state.inputMode === 'touch' ? 'touch-layout' : ''}">
           ${statsSection}
           ${timerDisplay}
-          <div class="stimulus"><div class="stimulus-inner"><div class="trial-counter">${countLabel}</div><div class="stimulus-track"><div class="arrow thick-arrow">${state.currentStimulus.symbol}</div>${state.upcomingStimuli.length > 0 ? `<div class="preview-arrows">${state.upcomingStimuli.map((stim, idx) => `<div class="preview-arrow-item"><div class="arrow">${stim.symbol}</div><div class="preview-label">${state.lang === 'zh' ? `后${idx + 1}` : `Next${idx + 1}`}</div></div>`).join('')}</div>` : ''}</div></div></div>
+          <div class="stimulus"><div class="stimulus-inner"><div class="trial-counter">${countLabel}</div><div class="stimulus-track"><div class="current-arrow-wrap"><div class="arrow thick-arrow">${state.currentStimulus.symbol}</div></div>${state.upcomingStimuli.length > 0 ? `<div class="preview-arrows">${state.upcomingStimuli.map((stim, idx) => `<div class="preview-arrow-item"><div class="arrow">${stim.symbol}</div><div class="preview-label">${state.lang === 'zh' ? `后${idx + 1}` : `Next${idx + 1}`}</div></div>`).join('')}</div>` : ''}</div></div></div>
           ${instructionHtml}
           ${getStageProgressMarkup()}
           ${touchControls}
@@ -1432,7 +1463,7 @@
     }
 
     function handleKey(event) {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) {
+      if (state.phase !== 'complete' && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) {
         event.preventDefault();
       }
       if (state.inputMode === 'touch') return;
@@ -1462,6 +1493,7 @@
     }
 
     function renderBetween(afterPractice = state.betweenAfterPractice) {
+      setScrollMode(false);
       state.phase = 'between';
       state.betweenAfterPractice = afterPractice;
       const message = afterPractice ? t('practiceComplete') : t('block1Complete');
@@ -1652,6 +1684,7 @@
 
 
     function renderComplete() {
+      setScrollMode(true);
       const numeric = summarizeCondition('numeric');
       const bar = summarizeCondition('bar');
       screen.innerHTML = `
@@ -1662,7 +1695,7 @@
           </div>
           ${headerControls()}
         </div>
-        <div class="card fullscreen-flow">
+        <div class="card">
           <p>${t('yourResults')}</p>
           <div class="grid">
             <div class="stat"><div class="stat-label">${t('numeric')} ${t('meanRT')}</div><div class="stat-value">${numeric.meanRT} ms</div></div>
