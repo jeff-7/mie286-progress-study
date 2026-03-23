@@ -265,10 +265,7 @@
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, var(--accent2), var(--accent2-soft));
-      transition: width 0.25s linear, background 0.25s linear;
-    }
-    .countdown-flash {
-      animation: countdownFlash 0.9s ease-in-out 1;
+      transition: width 0.08s linear, background 0.12s linear;
     }
     .bar-timer {
       margin-top: 10px;
@@ -332,7 +329,7 @@
       inset: 0 auto 0 0;
       width: 0%;
       border-radius: inherit;
-      transition: width 0.25s linear;
+      transition: width 0.08s linear;
     }
     .stage-progress-fill.practice { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .stage-progress-fill.block0 { background: linear-gradient(90deg, #22c55e, #86efac); }
@@ -380,10 +377,6 @@
       color: var(--muted);
       font-weight: 600;
       letter-spacing: 0.04em;
-    }
-    @keyframes countdownFlash {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.06); opacity: 0.35; }
     }
     .stimulus {
       position: relative;
@@ -670,7 +663,7 @@
         consent: 'I agree to participate anonymously for the MIE286 course project. (Required to start)',
         soundConsent: 'Enable optional sound effects to make the task feel more interactive.',
         leaderboardConsent: 'I agree to join the optional leaderboard. Optional: if unchecked, you will not join the leaderboard and will not see leaderboard results.',
-        soundHint: 'If enabled, each response uses a soft key-tap sound. The timer flashes once at 1 minute remaining, and a warning beep repeats during the last 30 seconds.',
+        soundHint: 'If enabled, each response uses a soft key-tap sound, and a warning beep repeats during the last 15 seconds.',
         nicknameLabel: 'Nickname (optional)',
         nicknamePlaceholder: 'Enter a nickname or leave blank',
         participantLabel: 'Participant ID',
@@ -741,7 +734,7 @@
         consent: '我同意以匿名方式参加 MIE286 课程项目实验。（必选，否则无法开始）',
         soundConsent: '开启可选音效，让任务更有互动感。',
         leaderboardConsent: '我同意加入可选积分榜。可选；如果不勾选，则不会加入积分榜，也看不到他人成绩。',
-        soundHint: '如果开启，每次作答都会播放温和的“键盘敲击”音效；剩余 1 分钟时倒计时会闪烁一次，最后 30 秒会持续滴滴提示。',
+        soundHint: '如果开启，每次作答都会播放温和的“键盘敲击”音效；最后 15 秒会持续滴滴提示。',
         nicknameLabel: '昵称（可选）',
         nicknamePlaceholder: '可输入昵称，也可留空',
         participantLabel: '参与者编号',
@@ -828,8 +821,6 @@
       betweenAfterPractice: true,
       stageDeadline: null,
       timerInterval: null,
-      minuteWarningFlashed: false,
-      countdownFlash: false,
       warningSecondPlayed: null,
       blockEnding: false,
       lastRenderedSecond: null,
@@ -1008,7 +999,6 @@
         timerNumber: document.getElementById('timerNumber'),
         timerFill: document.getElementById('timerFill'),
         elapsedValue: document.getElementById('elapsedValue'),
-        flashTargets: Array.from(document.querySelectorAll('[data-countdown-shell]')),
         stageFills: {
           practice: document.querySelector('[data-stage-fill="practice"]'),
           block0: document.querySelector('[data-stage-fill="block0"]'),
@@ -1039,15 +1029,6 @@
       if (fills.block1) fills.block1.style.width = `${block1Width}%`;
     }
 
-    function triggerCountdownFlash() {
-      state.countdownFlash = true;
-      updateLiveTimerUI(true);
-      setTimeout(() => {
-        state.countdownFlash = false;
-        updateLiveTimerUI(true);
-      }, 950);
-    }
-
     function stopStageTimer() {
       if (state.timerInterval) {
         clearInterval(state.timerInterval);
@@ -1065,15 +1046,6 @@
       const progressPct = totalMs ? Math.max(0, (remainingMs / totalMs) * 100) : 0;
       const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
       const refs = state.liveTimerEls || {};
-      if (!force && state.lastRenderedSecond === remainingSec) {
-        updateStageProgressUI();
-        return;
-      }
-      state.lastRenderedSecond = remainingSec;
-      if (refs.timerNumber) {
-        refs.timerNumber.textContent = remainingText;
-        refs.timerNumber.style.color = countdownColor;
-      }
       if (refs.timerFill) {
         refs.timerFill.style.width = `${progressPct}%`;
         refs.timerFill.style.background = `linear-gradient(90deg, #22c55e 0%, ${countdownColor} 100%)`;
@@ -1081,15 +1053,18 @@
       if (refs.elapsedValue) {
         refs.elapsedValue.textContent = formatElapsed(getElapsedMsForCurrentBlock());
       }
-      (refs.flashTargets || []).forEach((el) => el.classList.toggle('countdown-flash', !!state.countdownFlash));
       updateStageProgressUI();
+      if (!force && state.lastRenderedSecond === remainingSec) return;
+      state.lastRenderedSecond = remainingSec;
+      if (refs.timerNumber) {
+        refs.timerNumber.textContent = remainingText;
+        refs.timerNumber.style.color = countdownColor;
+      }
     }
 
     function startStageTimer() {
       stopStageTimer();
       state.stageDeadline = performance.now() + getStageDurationMs();
-      state.minuteWarningFlashed = false;
-      state.countdownFlash = false;
       state.warningSecondPlayed = null;
       state.blockEnding = false;
       state.lastRenderedSecond = null;
@@ -1097,11 +1072,7 @@
         if (state.phase !== 'trial' || state.blockEnding) return;
         const remainingMs = getRemainingMs();
         const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
-        if (!state.inPractice && remainingMs <= 60000 && !state.minuteWarningFlashed) {
-          state.minuteWarningFlashed = true;
-          triggerCountdownFlash();
-        }
-        if (!state.inPractice && remainingSec <= 30 && remainingSec > 0 && state.warningSecondPlayed !== remainingSec) {
+        if (!state.inPractice && remainingSec <= 15 && remainingSec > 0 && state.warningSecondPlayed !== remainingSec) {
           state.warningSecondPlayed = remainingSec;
           playWarningSound();
         }
@@ -1110,7 +1081,7 @@
           state.waitingForResponse = false;
           endBlock();
         }
-      }, 250);
+      }, 50);
     }
 
     function getMilestoneMessage(totalTrials) {
