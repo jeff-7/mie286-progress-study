@@ -327,6 +327,30 @@
       font-weight: 900;
       text-shadow: 1.1px 0 0 currentColor, -1.1px 0 0 currentColor, 0 1.1px 0 currentColor, 0 -1.1px 0 currentColor;
     }
+    .preview-arrows {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 24px;
+      min-height: 80px;
+    }
+    .preview-arrow-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.55;
+    }
+    .preview-arrow-item .arrow {
+      font-size: min(14vw, 6.5rem);
+    }
+    .preview-arrow-item .preview-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
     @keyframes countdownFlash {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.06); opacity: 0.35; }
@@ -546,6 +570,17 @@
       .stage-progress-wrap { margin-top: 2px; }
       .trial-counter { font-size: 1.18rem; }
       .stimulus-inner { padding: 14px 16px 18px; }
+      .preview-arrows {
+        gap: 10px;
+        margin-top: 12px;
+        min-height: 60px;
+      }
+      .preview-arrow-item .arrow {
+        font-size: min(12vw, 4.5rem);
+      }
+      .preview-arrow-item .preview-label {
+        font-size: 0.75rem;
+      }
     }
   </style>
 </head>
@@ -559,17 +594,18 @@
       practiceTrials: 10,
       blockTrials: 100,
       practiceDurationMs: 12000,
-      blockDurationMs: 100000,
+      blockDurationMs: 60000,
       interTrialMs: 300,
       countdownSeconds: 3,
       autosaveEveryTrials: 10,
       googleScriptUrl: 'https://script.google.com/macros/s/AKfycbxby9sQAFVlj_0iKi5aZaR8wQwTNgSaEhz5IoW0yAL-7v5gir-cjYP3Wyo-RH_IkLhf/exec',
       enableUpload: true,
+      previewArrowCount: 2,
       stimuli: [
-        { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown' },
-        { key: 'ArrowDown', symbol: '↓', correct: 'ArrowUp' },
-        { key: 'ArrowLeft', symbol: '←', correct: 'ArrowRight' },
-        { key: 'ArrowRight', symbol: '→', correct: 'ArrowLeft' }
+        { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown', type: 'vertical' },
+        { key: 'ArrowDown', symbol: '↓', correct: 'ArrowUp', type: 'vertical' },
+        { key: 'ArrowLeft', symbol: '←', correct: 'ArrowRight', type: 'horizontal' },
+        { key: 'ArrowRight', symbol: '→', correct: 'ArrowLeft', type: 'horizontal' }
       ]
     };
 
@@ -728,6 +764,7 @@
       blockIndex: 0,
       trialIndex: 0,
       currentStimulus: null,
+      upcomingStimuli: [],
       waitingForResponse: false,
       trialStart: null,
       blockStartTime: null,
@@ -1041,7 +1078,18 @@
 
     function nextStimulus() {
       const recent = state.lastStimuli.slice(-2);
-      const candidates = CONFIG.stimuli.filter((stim) => !(recent.length === 2 && recent[0] === stim.symbol && recent[1] === stim.symbol));
+      const candidates = CONFIG.stimuli.filter((stim) => {
+        if (recent.length === 2 && recent[0] === stim.symbol && recent[1] === stim.symbol) {
+          return false;
+        }
+        if (recent.length >= 2) {
+          const recentTypes = recent.map(sym => CONFIG.stimuli.find(s => s.symbol === sym)?.type || 'unknown');
+          if (recentTypes[0] === recentTypes[1] && stim.type === recentTypes[0]) {
+            return false;
+          }
+        }
+        return true;
+      });
       const chosen = candidates[Math.floor(Math.random() * candidates.length)];
       state.lastStimuli.push(chosen.symbol);
       if (state.lastStimuli.length > 2) state.lastStimuli = state.lastStimuli.slice(-2);
@@ -1219,6 +1267,29 @@
       }
       state.phase = 'trial';
       state.currentStimulus = nextStimulus();
+      
+      state.upcomingStimuli = [];
+      for (let i = 0; i < CONFIG.previewArrowCount; i++) {
+        const tempLastStimuli = state.lastStimuli.slice();
+        const recent = tempLastStimuli.slice(-2);
+        const candidates = CONFIG.stimuli.filter((stim) => {
+          if (recent.length === 2 && recent[0] === stim.symbol && recent[1] === stim.symbol) {
+            return false;
+          }
+          if (recent.length >= 2) {
+            const recentTypes = recent.map(sym => CONFIG.stimuli.find(s => s.symbol === sym)?.type || 'unknown');
+            if (recentTypes[0] === recentTypes[1] && stim.type === recentTypes[0]) {
+              return false;
+            }
+          }
+          return true;
+        });
+        const next = candidates[Math.floor(Math.random() * candidates.length)];
+        state.upcomingStimuli.push(next);
+        tempLastStimuli.push(next.symbol);
+        if (tempLastStimuli.length > 2) tempLastStimuli.slice(-2);
+      }
+      
       state.trialStart = performance.now();
       state.waitingForResponse = true;
       renderTrial();
@@ -1252,7 +1323,7 @@
 
       const instructionHtml = state.inputMode === 'touch'
         ? `<div class="trial-copy"><p class="muted">${t('touchHint')}</p></div>`
-        : `<div class="trial-copy"><p class="muted">${t('pressOpposite')}</p></div>`;
+        : `<div class="trial-copy"><p style="font-size: 1.4rem; font-weight: 800; color: #fbbf24; text-shadow: 0 0 16px rgba(251, 191, 36, 0.25); letter-spacing: 0.03em; line-height: 1.5;">${t('pressOpposite')}</p></div>`;
 
       const touchControls = state.inputMode === 'touch' ? `
             <div class="mobile-touchdock">
@@ -1280,7 +1351,7 @@
         <div class="main-layout ${state.inputMode === 'touch' ? 'touch-layout' : ''}">
           ${statsSection}
           ${timerDisplay}
-          <div class="stimulus"><div class="stimulus-inner"><div class="trial-counter">${countLabel}</div><div class="arrow thick-arrow">${state.currentStimulus.symbol}</div><div></div></div></div>
+          <div class="stimulus"><div class="stimulus-inner"><div class="trial-counter">${countLabel}</div><div class="arrow thick-arrow">${state.currentStimulus.symbol}</div>${state.upcomingStimuli.length > 0 ? `<div class="preview-arrows">${state.upcomingStimuli.map((stim, idx) => `<div class="preview-arrow-item"><div class="arrow">${stim.symbol}</div><div class="preview-label">${state.lang === 'zh' ? `后 ${idx + 1} 题` : `Next ${idx + 1}`}</div></div>`).join('')}</div>` : '<div></div>'}</div></div>
           ${instructionHtml}
           ${getStageProgressMarkup()}
           ${touchControls}
