@@ -70,20 +70,20 @@ function getLeaderboardEntries_() {
     .filter(row => truthy_(row.joinLeaderboard))
     .filter(row => !truthy_(row.partialSave))
     .forEach(row => {
-      const numericScore = safeNum_(row.numericScore);
-      const barScore = safeNum_(row.barScore);
+      const numericCompleted = safeNum_(row.numericCompleted);
+      const numericAccuracy = safeNum_(row.numericAccuracy);
+      const numericScore = computeScore_(numericCompleted, numericAccuracy);
+      const barCompleted = safeNum_(row.barCompleted);
+      const barAccuracy = safeNum_(row.barAccuracy);
+      const barScore = computeScore_(barCompleted, barAccuracy);
+      const bestIsNumeric = numericScore >= barScore;
       const entry = {
         participantId: row.participantId || '',
         nickname: row.nickname || '',
-        score: safeNum_(row.finalScore),
-        accuracy: Math.max(safeNum_(row.numericAccuracy), safeNum_(row.barAccuracy)),
-        meanRT: pickBestRT_(
-          numericScore,
-          safeNum_(row.numericMeanRT),
-          barScore,
-          safeNum_(row.barMeanRT)
-        ),
-        completed: numericScore >= barScore ? safeNum_(row.numericCompleted) : safeNum_(row.barCompleted),
+        score: Math.max(numericScore, barScore),
+        accuracy: bestIsNumeric ? numericAccuracy : barAccuracy,
+        meanRT: bestIsNumeric ? safeNum_(row.numericMeanRT) : safeNum_(row.barMeanRT),
+        completed: bestIsNumeric ? numericCompleted : barCompleted,
         updatedAt: row.updatedAt || ''
       };
 
@@ -203,6 +203,14 @@ function upsertLeaderboardRow_(sheet, obj) {
 }
 
 function buildLeaderboardRecord_(data, now) {
+  const numericMeanRT = safeNum_(data.numericSummary && data.numericSummary.meanRT);
+  const numericAccuracy = safeNum_(data.numericSummary && data.numericSummary.accuracy);
+  const numericCompleted = safeNum_(data.numericSummary && (data.numericSummary.completed ?? data.numericSummary.attempted));
+  const numericScore = computeScore_(numericCompleted, numericAccuracy);
+  const barMeanRT = safeNum_(data.barSummary && data.barSummary.meanRT);
+  const barAccuracy = safeNum_(data.barSummary && data.barSummary.accuracy);
+  const barCompleted = safeNum_(data.barSummary && (data.barSummary.completed ?? data.barSummary.attempted));
+  const barScore = computeScore_(barCompleted, barAccuracy);
   return {
     participantId: data.participantId || '',
     nickname: data.nickname || '',
@@ -214,15 +222,15 @@ function buildLeaderboardRecord_(data, now) {
     order: data.order || '',
     partialSave: truthy_(data.partialSave),
     blockSeconds: safeNum_(data.blockSeconds),
-    numericMeanRT: safeNum_(data.numericSummary && data.numericSummary.meanRT),
-    numericAccuracy: safeNum_(data.numericSummary && data.numericSummary.accuracy),
-    numericScore: safeNum_(data.numericSummary && data.numericSummary.score),
-    numericCompleted: safeNum_(data.numericSummary && (data.numericSummary.completed ?? data.numericSummary.attempted)),
-    barMeanRT: safeNum_(data.barSummary && data.barSummary.meanRT),
-    barAccuracy: safeNum_(data.barSummary && data.barSummary.accuracy),
-    barScore: safeNum_(data.barSummary && data.barSummary.score),
-    barCompleted: safeNum_(data.barSummary && (data.barSummary.completed ?? data.barSummary.attempted)),
-    finalScore: safeNum_(data.finalScore),
+    numericMeanRT,
+    numericAccuracy,
+    numericScore,
+    numericCompleted,
+    barMeanRT,
+    barAccuracy,
+    barScore,
+    barCompleted,
+    finalScore: Math.max(numericScore, barScore),
     updatedAt: now
   };
 }
@@ -271,8 +279,11 @@ function rewriteSheet_(sheet, headers, rows) {
   sheet.clearContents();
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
 
-  if (!rows.length) return;
-  sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  if (rows.length) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+
+  applySheetFormats_(sheet, headers, Math.max(rows.length, 1));
 }
 
 function parseRequest_(e) {
@@ -295,6 +306,37 @@ function rowToObject_(headers, row) {
   return obj;
 }
 
+function computeScore_(completed, accuracy) {
+  return Number((safeNum_(completed) * Math.pow(safeNum_(accuracy), 2)).toFixed(2));
+}
+
+function applySheetFormats_(sheet, headers, rowCount) {
+  const formats = {};
+  if (headers === TRIAL_HEADERS) {
+    formats.blockIndex = '0';
+    formats.trial = '0';
+    formats.rtMs = '0';
+    formats.elapsedMsInBlock = '0';
+  }
+  if (headers === LEADERBOARD_HEADERS) {
+    formats.blockSeconds = '0';
+    formats.numericMeanRT = '0';
+    formats.numericAccuracy = '0.0000';
+    formats.numericScore = '0.00';
+    formats.numericCompleted = '0';
+    formats.barMeanRT = '0';
+    formats.barAccuracy = '0.0000';
+    formats.barScore = '0.00';
+    formats.barCompleted = '0';
+    formats.finalScore = '0.00';
+  }
+  Object.keys(formats).forEach((header) => {
+    const idx = headers.indexOf(header);
+    if (idx === -1) return;
+    sheet.getRange(2, idx + 1, rowCount, 1).setNumberFormat(formats[header]);
+  });
+}
+
 function pickBestRT_(numericScore, numericMeanRT, barScore, barMeanRT) {
   return numericScore >= barScore ? numericMeanRT : barMeanRT;
 }
@@ -306,6 +348,7 @@ function truthy_(value) {
 }
 
 function safeNum_(value) {
+  if (value instanceof Date) return 0;
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
 }
