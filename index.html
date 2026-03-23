@@ -1102,8 +1102,8 @@
       return state.blockStartTime ? performance.now() - state.blockStartTime : 0;
     }
 
-    function nextStimulus() {
-      const recent = state.lastStimuli.slice(-2);
+    function chooseStimulusFromHistory(history) {
+      const recent = history.slice(-2);
       const candidates = CONFIG.stimuli.filter((stim) => {
         if (recent.length === 2 && recent[0] === stim.symbol && recent[1] === stim.symbol) {
           return false;
@@ -1116,10 +1116,30 @@
         }
         return true;
       });
-      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
-      state.lastStimuli.push(chosen.symbol);
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    function rememberStimulus(stimulus) {
+      state.lastStimuli.push(stimulus.symbol);
       if (state.lastStimuli.length > 2) state.lastStimuli = state.lastStimuli.slice(-2);
-      return chosen;
+    }
+
+    function ensureUpcomingStimuli(minCount) {
+      let simulatedHistory = state.lastStimuli.concat(state.upcomingStimuli.map((stim) => stim.symbol));
+      while (state.upcomingStimuli.length < minCount) {
+        const next = chooseStimulusFromHistory(simulatedHistory);
+        state.upcomingStimuli.push(next);
+        simulatedHistory.push(next.symbol);
+        if (simulatedHistory.length > 2) simulatedHistory = simulatedHistory.slice(-2);
+      }
+    }
+
+    function takeNextStimulus() {
+      ensureUpcomingStimuli(CONFIG.previewArrowCount + 1);
+      const next = state.upcomingStimuli.shift();
+      rememberStimulus(next);
+      ensureUpcomingStimuli(CONFIG.previewArrowCount);
+      return next;
     }
 
     function headerControls() {
@@ -1250,6 +1270,8 @@
       state.feedbackMode = isPractice ? 'practice' : state.conditionOrder[state.blockIndex];
       state.blockStartTime = null;
       state.lastStimuli = [];
+      state.upcomingStimuli = [];
+      state.currentStimulus = null;
       state.phase = 'countdown';
       countdownThen(() => {
         state.blockStartTime = performance.now();
@@ -1292,30 +1314,7 @@
         return;
       }
       state.phase = 'trial';
-      state.currentStimulus = nextStimulus();
-      
-      state.upcomingStimuli = [];
-      let simulatedLastStimuli = state.lastStimuli.slice();
-      for (let i = 0; i < CONFIG.previewArrowCount; i++) {
-        const recent = simulatedLastStimuli.slice(-2);
-        const candidates = CONFIG.stimuli.filter((stim) => {
-          if (recent.length === 2 && recent[0] === stim.symbol && recent[1] === stim.symbol) {
-            return false;
-          }
-          if (recent.length >= 2) {
-            const recentTypes = recent.map(sym => CONFIG.stimuli.find(s => s.symbol === sym)?.type || 'unknown');
-            if (recentTypes[0] === recentTypes[1] && stim.type === recentTypes[0]) {
-              return false;
-            }
-          }
-          return true;
-        });
-        const next = candidates[Math.floor(Math.random() * candidates.length)];
-        state.upcomingStimuli.push(next);
-        simulatedLastStimuli.push(next.symbol);
-        if (simulatedLastStimuli.length > 2) simulatedLastStimuli = simulatedLastStimuli.slice(-2);
-      }
-      
+      state.currentStimulus = takeNextStimulus();
       state.trialStart = performance.now();
       state.waitingForResponse = true;
       renderTrial();
