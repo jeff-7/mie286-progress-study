@@ -19,13 +19,18 @@
       --danger: #ef4444;
     }
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
     body {
       margin: 0;
       font-family: Inter, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
       background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
       color: var(--text);
-      min-height: 100vh;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: stretch;
@@ -33,12 +38,13 @@
     }
     .app {
       width: min(100vw - 24px, 1700px);
-      min-height: calc(100vh - 24px);
+      height: calc(100vh - 24px);
       background: rgba(17, 24, 39, 0.97);
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: 22px 26px 26px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      overflow: hidden;
     }
     h1, h2, h3, p { margin-top: 0; }
     h1 { font-size: 2.2rem; margin-bottom: 8px; }
@@ -116,16 +122,19 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      min-height: calc(100vh - 180px);
+      min-height: 0;
+      height: calc(100vh - 180px);
     }
     .fullscreen-flow {
-      min-height: calc(100vh - 120px);
+      min-height: 0;
+      height: calc(100vh - 120px);
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
     }
     .transition-screen {
-      min-height: calc(100vh - 160px);
+      min-height: 0;
+      height: calc(100vh - 160px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -271,18 +280,28 @@
       width: 100%;
       min-height: inherit;
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       padding: 22px 24px 30px;
     }
     .trial-counter {
-      align-self: stretch;
+      position: absolute;
+      top: 22px;
+      left: 24px;
+      right: 24px;
       text-align: center;
       color: #dbe4f0;
       font-size: 1.45rem;
       font-weight: 800;
       letter-spacing: 0.02em;
+    }
+    .stimulus-track {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(14px, 2vw, 26px);
+      width: 100%;
+      padding-top: 42px;
     }
     .stage-progress-wrap {
       margin-top: 6px;
@@ -329,24 +348,22 @@
     }
     .preview-arrows {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       justify-content: center;
       align-items: center;
-      margin-top: 24px;
-      min-height: 80px;
     }
     .preview-arrow-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      opacity: 0.55;
+      gap: 4px;
+      opacity: 0.5;
     }
     .preview-arrow-item .arrow {
-      font-size: min(14vw, 6.5rem);
+      font-size: min(8vw, 3.5rem);
     }
     .preview-arrow-item .preview-label {
-      font-size: 0.85rem;
+      font-size: 0.7rem;
       color: var(--muted);
       font-weight: 600;
       letter-spacing: 0.04em;
@@ -356,15 +373,17 @@
       50% { transform: scale(1.06); opacity: 0.35; }
     }
     .stimulus {
+      position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
       flex: 1 1 auto;
-      min-height: min(48vh, 560px);
+      min-height: 0;
       border: 1px dashed #334155;
       border-radius: 24px;
       background: rgba(255,255,255,0.02);
       margin: 0;
+      overflow: hidden;
     }
     .arrow {
       font-size: min(24vw, 14rem);
@@ -511,18 +530,18 @@
     }
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
-      .app { width: calc(100vw - 16px); min-height: calc(100vh - 16px); padding: 10px 10px calc(12px + env(safe-area-inset-bottom)); }
+      .app { width: calc(100vw - 16px); height: calc(100vh - 16px); padding: 10px 10px calc(12px + env(safe-area-inset-bottom)); }
       .topbar { margin-bottom: 6px; align-items: center; gap: 8px; }
       .topbar h2 { font-size: 1.35rem; margin-bottom: 0; }
       .topbar .muted { font-size: 0.92rem; }
-      .main-layout { gap: 6px; min-height: auto; }
+      .main-layout { gap: 6px; height: calc(100vh - 132px); }
       .stat { min-height: 92px; }
       .stat-value { font-size: 1.8rem; }
       .feedback-panel { min-height: 64px; padding: 10px 12px; border-radius: 16px; }
       .feedback-label { font-size: 0.92rem; margin-bottom: 4px; }
       .completed-answer-top .done-number { font-size: 3.65rem; }
       .completed-answer-top .total-number { font-size: 0.92rem; }
-      .stimulus { min-height: 228px; border-radius: 20px; }
+      .stimulus { min-height: 0; border-radius: 20px; }
       .arrow { font-size: min(28vw, 7.5rem); }
       .mobile-stats {
         display: flex;
@@ -561,25 +580,32 @@
         width: 100%;
         height: 88px;
       }
-      .transition-screen { min-height: calc(100vh - 150px); padding-top: 4px; }
+      .transition-screen { height: calc(100vh - 150px); padding-top: 4px; }
       .transition-panel { min-height: calc(100vh - 210px); border-radius: 22px; padding: 24px 20px; }
       .transition-actions { justify-content: stretch; }
       .transition-actions button { width: 100%; min-width: 0; min-height: 60px; font-size: 1.1rem; }
       .stage-progress-segment { height: 10px; }
       .stage-progress-labels { font-size: 0.8rem; margin-top: 6px; }
       .stage-progress-wrap { margin-top: 2px; }
-      .trial-counter { font-size: 1.18rem; }
+      .trial-counter {
+        top: 14px;
+        left: 16px;
+        right: 16px;
+        font-size: 1.18rem;
+      }
       .stimulus-inner { padding: 14px 16px 18px; }
-      .preview-arrows {
+      .stimulus-track {
         gap: 10px;
-        margin-top: 12px;
-        min-height: 60px;
+        padding-top: 32px;
+      }
+      .preview-arrows {
+        gap: 6px;
       }
       .preview-arrow-item .arrow {
-        font-size: min(12vw, 4.5rem);
+        font-size: min(6vw, 2.5rem);
       }
       .preview-arrow-item .preview-label {
-        font-size: 0.75rem;
+        font-size: 0.6rem;
       }
     }
   </style>
@@ -613,12 +639,12 @@
       en: {
         study: 'MIE286 Study',
         title: 'Direction Matching Game',
-        introLead: 'How many correct responses can you make in 100 seconds?',
+        introLead: 'How many correct responses can you make in 60 seconds?',
         readBefore: 'Before you begin',
         bullets: [
           'In laboratory finger-tapping tests, healthy adults in their 20s and 30s average about 300 simple taps per minute with the dominant index finger. But this challenge is harder.',
           'Here, every arrow must be answered with the opposite direction. That means this is not just about speed — it is also about attention, judgment, and consistency.',
-          'You will complete two 100-second rounds. The task stays the same, but the countdown is displayed differently in each round.',
+          'You will complete two 60-second rounds. The task stays the same, but the countdown is displayed differently in each round.',
           'We want to explore one question: Can the way time is shown affect how fast and how accurately you perform?',
           'How many can you finish? How accurate can you stay? This time, the record will be written by you.'
         ],
@@ -633,7 +659,7 @@
         continue: 'Continue to Practice →',
         warmup: 'Warm-up Round',
         practiceFirst: 'Practice first',
-        practiceDesc: 'You will have 10 practice opportunities before the two 100-second rounds. Practice does not count toward the final score.',
+        practiceDesc: 'You will have 10 practice opportunities before the two 60-second rounds. Practice does not count toward the final score.',
         rule: 'Rule:',
         ruleText: 'if you see ↑, press ↓. If you see ←, press →, and so on.',
         cogLoad: 'This opposite-response rule adds cognitive load so the task is not too easy.',
@@ -684,12 +710,12 @@
       zh: {
         study: 'MIE286 实验',
         title: '方向匹配任务',
-        introLead: '100 秒内，你能完成多少次正确反应？',
+        introLead: '60 秒内，你能完成多少次正确反应？',
         readBefore: '开始之前',
         bullets: [
           '在实验室的单指快速敲击测试中，健康成年人的优势手平均约可达到每分钟 300 次简单敲击。但在这里，事情没那么简单。',
           '你看到的每一个箭头，都要求你按下相反方向的按键。这意味着你面对的不只是手速挑战，还有注意力、判断与稳定性的考验。',
-          '你将完成两个阶段的挑战，每个阶段 100 秒。两轮规则相同，但倒计时的呈现方式不同。',
+          '你将完成两个阶段的挑战，每个阶段 60 秒。两轮规则相同，但倒计时的呈现方式不同。',
           '我们想研究的是：时间反馈的表达方式，会不会影响你的速度与准确率？',
           '你能完成多少题？你的正确率能保持多高？这一次，记录将由你亲手写下。'
         ],
@@ -704,7 +730,7 @@
         continue: '继续到练习 →',
         warmup: '热身练习',
         practiceFirst: '先进行练习',
-        practiceDesc: '正式挑战前你有 10 次练习机会。练习不计入最终得分。',
+        practiceDesc: '正式挑战前你有 10 次练习机会，然后进入两个 60 秒的正式阶段。练习不计入最终得分。',
         rule: '规则：',
         ruleText: '如果看到 ↑，就按 ↓；如果看到 ←，就按 →，其余同理。',
         cogLoad: '“按相反方向”的规则会增加一定认知负担，避免任务过于简单。',
@@ -1269,9 +1295,9 @@
       state.currentStimulus = nextStimulus();
       
       state.upcomingStimuli = [];
+      let simulatedLastStimuli = state.lastStimuli.slice();
       for (let i = 0; i < CONFIG.previewArrowCount; i++) {
-        const tempLastStimuli = state.lastStimuli.slice();
-        const recent = tempLastStimuli.slice(-2);
+        const recent = simulatedLastStimuli.slice(-2);
         const candidates = CONFIG.stimuli.filter((stim) => {
           if (recent.length === 2 && recent[0] === stim.symbol && recent[1] === stim.symbol) {
             return false;
@@ -1286,8 +1312,8 @@
         });
         const next = candidates[Math.floor(Math.random() * candidates.length)];
         state.upcomingStimuli.push(next);
-        tempLastStimuli.push(next.symbol);
-        if (tempLastStimuli.length > 2) tempLastStimuli.slice(-2);
+        simulatedLastStimuli.push(next.symbol);
+        if (simulatedLastStimuli.length > 2) simulatedLastStimuli = simulatedLastStimuli.slice(-2);
       }
       
       state.trialStart = performance.now();
@@ -1351,7 +1377,7 @@
         <div class="main-layout ${state.inputMode === 'touch' ? 'touch-layout' : ''}">
           ${statsSection}
           ${timerDisplay}
-          <div class="stimulus"><div class="stimulus-inner"><div class="trial-counter">${countLabel}</div><div class="arrow thick-arrow">${state.currentStimulus.symbol}</div>${state.upcomingStimuli.length > 0 ? `<div class="preview-arrows">${state.upcomingStimuli.map((stim, idx) => `<div class="preview-arrow-item"><div class="arrow">${stim.symbol}</div><div class="preview-label">${state.lang === 'zh' ? `后 ${idx + 1} 题` : `Next ${idx + 1}`}</div></div>`).join('')}</div>` : '<div></div>'}</div></div>
+          <div class="stimulus"><div class="stimulus-inner"><div class="trial-counter">${countLabel}</div><div class="stimulus-track"><div class="arrow thick-arrow">${state.currentStimulus.symbol}</div>${state.upcomingStimuli.length > 0 ? `<div class="preview-arrows">${state.upcomingStimuli.map((stim, idx) => `<div class="preview-arrow-item"><div class="arrow">${stim.symbol}</div><div class="preview-label">${state.lang === 'zh' ? `后${idx + 1}` : `Next${idx + 1}`}</div></div>`).join('')}</div>` : ''}</div></div></div>
           ${instructionHtml}
           ${getStageProgressMarkup()}
           ${touchControls}
@@ -1407,6 +1433,9 @@
     }
 
     function handleKey(event) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) {
+        event.preventDefault();
+      }
       if (state.inputMode === 'touch') return;
       handleResponse(event.key);
     }
