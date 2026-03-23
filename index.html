@@ -132,6 +132,13 @@
       flex-direction: column;
       justify-content: flex-start;
     }
+    .intro-panel {
+      max-height: calc(100vh - 168px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 8px;
+    }
     .transition-screen {
       min-height: 0;
       height: calc(100vh - 160px);
@@ -543,6 +550,7 @@
       .topbar h2 { font-size: 1.35rem; margin-bottom: 0; }
       .topbar .muted { font-size: 0.92rem; }
       .main-layout { gap: 6px; height: calc(100vh - 132px); }
+      .intro-panel { max-height: calc(100vh - 144px); padding-right: 2px; }
       .stat { min-height: 92px; }
       .stat-value { font-size: 1.8rem; }
       .feedback-panel { min-height: 64px; padding: 10px 12px; border-radius: 16px; }
@@ -1181,7 +1189,7 @@
     }
 
     function renderIntro() {
-      setScrollMode(false);
+      setScrollMode(true);
       state.phase = 'intro';
       screen.innerHTML = `
         <div class="topbar">
@@ -1194,7 +1202,7 @@
           </div>
           ${headerControls()}
         </div>
-        <div class="card fullscreen-flow">
+        <div class="card intro-panel">
           <h2>${t('readBefore')}</h2>
           <ul>${I18N[state.lang].bullets.map((x) => `<li>${x}</li>`).join('')}</ul>
           <div class="row" style="margin-top:14px;">
