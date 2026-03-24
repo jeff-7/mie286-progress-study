@@ -764,7 +764,7 @@
         uploaded: 'Upload status',
         uploadStatusReady: 'Upload is not connected yet. Add your Google Apps Script URL to enable automatic saving.',
         uploadStatusSuccess: 'Your results were uploaded successfully.',
-        uploadStatusUploading: 'Uploading in progress. Please do not leave this page.',
+        uploadStatusUploading: 'Uploading in progress. Please do not leave this page. This may take one minute and thank you for your patience.',
         uploadStatusLeaderboard: 'Your results were uploaded. Please wait while the leaderboard refreshes.',
         uploadStatusFail: 'Upload failed. Your on-screen summary is still available.',
         restart: 'Restart Demo',
@@ -838,7 +838,7 @@
         uploaded: '上传状态',
         uploadStatusReady: '上传功能尚未连接。填入 Google Apps Script 链接后即可自动保存。',
         uploadStatusSuccess: '你的结果已成功上传。',
-        uploadStatusUploading: '正在上传，请勿退出。',
+        uploadStatusUploading: '正在上传，请勿退出。这可能需要一分钟，感谢你的耐心等待。',
         uploadStatusLeaderboard: '你的结果已上传，请稍等积分榜刷新。',
         uploadStatusFail: '上传失败，但你的页面结果仍可查看。',
         restart: '重新开始演示',
@@ -1677,10 +1677,12 @@
       return rows.slice(state.stageUploadMarkers[uploadKey] || 0);
     }
 
-    function markStageUploaded(stageKey) {
+    function markStageUploaded(stageKey, uploadedThrough = null) {
       const uploadKey = getStageUploadKey(stageKey);
-      state.stageUploadMarkers[uploadKey] = getStageRows(stageKey).length;
-      state.uploadedTrialCount = getParticipantTrialRows().length;
+      const currentLength = getStageRows(stageKey).length;
+      const safeThrough = uploadedThrough == null ? currentLength : Math.min(uploadedThrough, currentLength);
+      state.stageUploadMarkers[uploadKey] = Math.max(state.stageUploadMarkers[uploadKey] || 0, safeThrough);
+      state.uploadedTrialCount = Object.values(state.stageUploadMarkers).reduce((sum, count) => sum + Number(count || 0), 0);
     }
 
     async function uploadStageWithRetry(stageKey, maxAttempts = 2) {
@@ -1784,9 +1786,13 @@
       }
 
       const summaryOnly = !!options.summaryOnly;
+      const uploadKey = !summaryOnly && stageKey !== null ? getStageUploadKey(stageKey) : null;
       const stageRows = summaryOnly
         ? []
         : (stageKey === null ? getParticipantTrialRows() : getPendingStageRows(stageKey));
+      const uploadedThrough = uploadKey
+        ? (state.stageUploadMarkers[uploadKey] || 0) + stageRows.length
+        : getParticipantTrialRows().length;
 
       if (!summaryOnly && !stageRows.length) {
         if (!isPartial && state.phase === 'complete') renderComplete();
@@ -1809,7 +1815,7 @@
 
       if (uploadOk) {
         if (!summaryOnly && stageKey !== null) {
-          markStageUploaded(stageKey);
+          markStageUploaded(stageKey, uploadedThrough);
         } else if (!summaryOnly) {
           state.uploadedTrialCount = getParticipantTrialRows().length;
         }
