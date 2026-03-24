@@ -57,6 +57,36 @@
       background: rgba(255,255,255,0.02);
       margin-top: 16px;
     }
+    .confetti-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 40;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 16px;
+      top: 14%;
+      border-radius: 3px;
+      opacity: 0.95;
+      animation: confettiDrop 1200ms cubic-bezier(0.18, 0.72, 0.3, 1) forwards;
+      will-change: transform, opacity;
+    }
+    @keyframes confettiDrop {
+      0% {
+        transform: translate3d(0, -12px, 0) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate3d(var(--drift-x, 0px), var(--drop-y, 220px), 0) rotate(var(--spin, 360deg));
+        opacity: 0;
+      }
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(220px, 1fr));
@@ -329,7 +359,7 @@
       border-radius: 999px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(148, 163, 184, 0.18);
-      overflow: hidden;
+      overflow: visible;
     }
     .stage-progress-fill {
       position: absolute;
@@ -337,6 +367,40 @@
       width: 0%;
       border-radius: inherit;
       transition: width 0.08s linear;
+    }
+    .stage-progress-flag {
+      position: absolute;
+      left: 0%;
+      top: 50%;
+      width: 18px;
+      height: 28px;
+      transform: translate(-50%, -56%);
+      pointer-events: none;
+      z-index: 2;
+      transition: left 0.08s linear;
+    }
+    .stage-progress-flag::before {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 1px;
+      width: 2px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(248, 250, 252, 0.95);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.18);
+    }
+    .stage-progress-flag::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 10px;
+      height: 8px;
+      background: linear-gradient(180deg, #fb7185, #dc2626);
+      clip-path: polygon(0 0, 100% 18%, 72% 50%, 100% 82%, 0 100%);
+      box-shadow: 0 1px 4px rgba(220, 38, 38, 0.35);
+      border-radius: 1px;
     }
     .stage-progress-fill.practice { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .stage-progress-fill.block0 { background: linear-gradient(90deg, #22c55e, #86efac); }
@@ -407,6 +471,7 @@
     }
     .success { color: var(--ok); }
     .warning { color: var(--warn); }
+    .upload-emphasis { color: #ff5a5a; font-weight: 900; letter-spacing: 0.01em; text-transform: uppercase; }
     .leaderboard-panel {
       display: flex;
       flex-direction: column;
@@ -527,22 +592,6 @@
       transform: translateY(1px) scale(0.99);
       box-shadow: inset 0 2px 6px rgba(0,0,0,0.12), 0 3px 8px rgba(0,0,0,0.16);
     }
-    .milestone-banner {
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid rgba(56, 189, 248, 0.45);
-      background: rgba(56, 189, 248, 0.12);
-      color: #dbeafe;
-      font-weight: 800;
-      animation: milestoneFlash 0.45s ease-in-out 2;
-      text-align: center;
-      margin: 0;
-      font-size: 1.15rem;
-    }
-    @keyframes milestoneFlash {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.3; transform: scale(1.02); }
-    }
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
       .app { width: calc(100vw - 16px); height: calc(100vh - 16px); padding: 10px 10px calc(12px + env(safe-area-inset-bottom)); }
@@ -650,10 +699,10 @@
       blockDurationMs: 60000,
       interTrialMs: 100,
       countdownSeconds: 3,
-      autosaveEveryTrials: 10,
-      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbxby9sQAFVlj_0iKi5aZaR8wQwTNgSaEhz5IoW0yAL-7v5gir-cjYP3Wyo-RH_IkLhf/exec',
+      googleScriptUrl: 'https://script.google.com/macros/s/AKfycbxiZsPR_PRYtP09s1ASSd18FgbgayLFLlT1JePsV4knRJHoDZVPfPAK6cr5ONFOiUdB/exec',
       enableUpload: true,
       previewArrowCount: 2,
+      stageUploadIntervalMs: 10000,
       stimuli: [
         { key: 'ArrowUp', symbol: '↑', correct: 'ArrowDown', type: 'vertical' },
         { key: 'ArrowDown', symbol: '↓', correct: 'ArrowUp', type: 'vertical' },
@@ -715,6 +764,8 @@
         uploaded: 'Upload status',
         uploadStatusReady: 'Upload is not connected yet. Add your Google Apps Script URL to enable automatic saving.',
         uploadStatusSuccess: 'Your results were uploaded successfully.',
+        uploadStatusUploading: 'Uploading in progress. Please do not leave this page.',
+        uploadStatusLeaderboard: 'Your results were uploaded. Please wait while the leaderboard refreshes.',
         uploadStatusFail: 'Upload failed. Your on-screen summary is still available.',
         restart: 'Restart Demo',
         noOthers: 'This page does not expose any other participant data.',
@@ -722,6 +773,7 @@
         leaderboardTitle: 'Optional Leaderboard',
         leaderboardDesc: 'Only participants who opted in are shown below.',
         noLeaderboard: 'No leaderboard entries available yet.',
+        leaderboardLoading: 'Please wait while the leaderboard refreshes.',
         leaderboardCurrent: 'You',
         leaderboardRuleTitle: 'Scoring rule',
         leaderboardRule: 'Leaderboard rank uses your better single main block, not a combined two-block score. Score = Completed × Accuracy². Because feedback order is randomized, this may correspond to Trial 1 or Trial 2 depending on the assigned order.',
@@ -786,6 +838,8 @@
         uploaded: '上传状态',
         uploadStatusReady: '上传功能尚未连接。填入 Google Apps Script 链接后即可自动保存。',
         uploadStatusSuccess: '你的结果已成功上传。',
+        uploadStatusUploading: '正在上传，请勿退出。',
+        uploadStatusLeaderboard: '你的结果已上传，请稍等积分榜刷新。',
         uploadStatusFail: '上传失败，但你的页面结果仍可查看。',
         restart: '重新开始演示',
         noOthers: '此页面不会暴露其他参与者的数据。',
@@ -793,6 +847,7 @@
         leaderboardTitle: '可选积分榜',
         leaderboardDesc: '下面只显示同意加入积分榜的参与者。',
         noLeaderboard: '目前还没有可显示的积分榜记录。',
+        leaderboardLoading: '请稍等，积分榜正在刷新。',
         leaderboardCurrent: '你',
         leaderboardRuleTitle: '积分规则',
         leaderboardRule: '排行榜按两个正式模块中得分更高的那一个模块排序，不是两块合并成绩。积分 = 完成题数 × 正确率²。由于反馈顺序随机，这个成绩可能对应试验一，也可能对应试验二。',
@@ -823,16 +878,22 @@
       blockStartTime: null,
       results: [],
       uploadedTrialCount: 0,
+      stageUploadMarkers: { practice: 0, block0: 0, block1: 0 },
+      uploadQueue: Promise.resolve(),
       inPractice: false,
       feedbackMode: null,
       uploadStatus: 'idle',
       leaderboard: [],
+      leaderboardLoading: false,
       lastStimuli: [],
       sessionId: `S-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
       deviceType: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
       inputMode: ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'touch' : 'keyboard',
       soundEnabled: false,
       audioCtx: null,
+      audioReady: false,
+      masterGain: null,
+      lastAudioTime: 0,
       betweenAfterPractice: true,
       stageDeadline: null,
       timerInterval: null,
@@ -840,7 +901,9 @@
       blockEnding: false,
       bufferedResponse: null,
       lastRenderedSecond: null,
-      liveTimerEls: null
+      liveTimerEls: null,
+      nextStageUploadAt: null,
+      finalizingUploads: false
     };
 
     const screen = document.getElementById('screen');
@@ -854,21 +917,46 @@
       if (app) app.style.overflowY = enabled ? 'auto' : 'hidden';
     }
 
-    function initAudio() {
+    async function initAudio() {
       if (!state.audioCtx) {
         const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (Ctx) state.audioCtx = new Ctx();
+        if (Ctx) state.audioCtx = new Ctx({ latencyHint: 'interactive' });
       }
-      if (state.audioCtx && state.audioCtx.state === 'suspended') {
-        state.audioCtx.resume();
+      if (!state.audioCtx) return false;
+      if (state.audioCtx.state === 'suspended') {
+        try {
+          await state.audioCtx.resume();
+        } catch (e) {
+        }
       }
+      if (!state.masterGain) {
+        state.masterGain = state.audioCtx.createGain();
+        state.masterGain.gain.value = 1;
+        state.masterGain.connect(state.audioCtx.destination);
+      }
+      if (!state.audioReady) {
+        const now = state.audioCtx.currentTime;
+        const osc = state.audioCtx.createOscillator();
+        const gain = state.audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        gain.gain.setValueAtTime(0.00001, now);
+        gain.gain.exponentialRampToValueAtTime(0.00002, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.03);
+        osc.connect(gain);
+        gain.connect(state.masterGain);
+        osc.start(now);
+        osc.stop(now + 0.04);
+        state.audioReady = true;
+      }
+      return true;
     }
 
     function playTapSound() {
-      if (!state.soundEnabled) return;
-      initAudio();
-      if (!state.audioCtx) return;
-      const now = state.audioCtx.currentTime;
+      if (!state.soundEnabled || !state.audioReady || !state.audioCtx) return;
+      if (state.audioCtx.state === 'suspended') return;
+      const now = Math.max(state.audioCtx.currentTime + 0.001, state.lastAudioTime + 0.002);
+      state.lastAudioTime = now;
       const osc1 = state.audioCtx.createOscillator();
       const osc2 = state.audioCtx.createOscillator();
       const gain = state.audioCtx.createGain();
@@ -886,32 +974,11 @@
       osc1.connect(filter);
       osc2.connect(filter);
       filter.connect(gain);
-      gain.connect(state.audioCtx.destination);
+      gain.connect(state.masterGain || state.audioCtx.destination);
       osc1.start(now);
       osc2.start(now);
       osc1.stop(now + 0.04);
       osc2.stop(now + 0.04);
-    }
-
-    function playMilestoneSound() {
-      if (!state.soundEnabled) return;
-      initAudio();
-      if (!state.audioCtx) return;
-      const now = state.audioCtx.currentTime;
-      const freqs = [988, 1319, 1568];
-      freqs.forEach((f, i) => {
-        const osc = state.audioCtx.createOscillator();
-        const gain = state.audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(f, now + i * 0.08);
-        gain.gain.setValueAtTime(0.0001, now + i * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.02, now + i * 0.08 + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.11);
-        osc.connect(gain);
-        gain.connect(state.audioCtx.destination);
-        osc.start(now + i * 0.08);
-        osc.stop(now + i * 0.08 + 0.12);
-      });
     }
 
     function generateParticipantId() {
@@ -988,7 +1055,7 @@
       return `
         <div class="stage-progress-wrap">
           <div class="stage-progress-track">
-            ${segments.map(seg => `<div class="stage-progress-segment" style="flex:${seg.weight}"><div class="stage-progress-fill ${seg.key}" data-stage-fill="${seg.key}" style="width:${fillFor(seg.key) * 100}%"></div></div>`).join('')}
+            ${segments.map(seg => `<div class="stage-progress-segment" style="flex:${seg.weight}"><div class="stage-progress-fill ${seg.key}" data-stage-fill="${seg.key}" style="width:${fillFor(seg.key) * 100}%"></div><div class="stage-progress-flag ${seg.key}" data-stage-flag="${seg.key}" style="left:${fillFor(seg.key) * 100}%"></div></div>`).join('')}
           </div>
           <div class="stage-progress-labels">
             ${segments.map(seg => `<div class="stage-progress-label" style="flex:${seg.weight}">${seg.label}</div>`).join('')}
@@ -997,10 +1064,10 @@
     }
 
     function playWarningSound() {
-      if (!state.soundEnabled) return;
-      initAudio();
-      if (!state.audioCtx) return;
-      const now = state.audioCtx.currentTime;
+      if (!state.soundEnabled || !state.audioReady || !state.audioCtx) return;
+      if (state.audioCtx.state === 'suspended') return;
+      const now = Math.max(state.audioCtx.currentTime + 0.001, state.lastAudioTime + 0.01);
+      state.lastAudioTime = now + 0.2;
       [0, 0.16].forEach((offset) => {
         const osc = state.audioCtx.createOscillator();
         const gain = state.audioCtx.createGain();
@@ -1010,10 +1077,39 @@
         gain.gain.exponentialRampToValueAtTime(0.012, now + offset + 0.008);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.09);
         osc.connect(gain);
-        gain.connect(state.audioCtx.destination);
+        gain.connect(state.masterGain || state.audioCtx.destination);
         osc.start(now + offset);
         osc.stop(now + offset + 0.1);
       });
+    }
+
+    function launchConfetti() {
+      const appEl = document.querySelector('.app');
+      if (!appEl) return;
+      const layer = document.createElement('div');
+      layer.className = 'confetti-layer';
+      const colors = ['#fb7185', '#f59e0b', '#facc15', '#4ade80', '#60a5fa', '#c084fc'];
+      const pieceCount = 28;
+      for (let i = 0; i < pieceCount; i += 1) {
+        const piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        const left = 10 + Math.random() * 80;
+        const drift = -90 + Math.random() * 180;
+        const drop = 160 + Math.random() * 220;
+        const spin = -540 + Math.random() * 1080;
+        const delay = Math.random() * 180;
+        piece.style.left = `${left}%`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.setProperty('--drift-x', `${drift}px`);
+        piece.style.setProperty('--drop-y', `${drop}px`);
+        piece.style.setProperty('--spin', `${spin}deg`);
+        piece.style.animationDelay = `${delay}ms`;
+        piece.style.width = `${8 + Math.random() * 6}px`;
+        piece.style.height = `${12 + Math.random() * 8}px`;
+        layer.appendChild(piece);
+      }
+      appEl.appendChild(layer);
+      window.setTimeout(() => layer.remove(), 1700);
     }
 
     function cacheLiveTimerUI() {
@@ -1025,6 +1121,11 @@
           practice: document.querySelector('[data-stage-fill="practice"]'),
           block0: document.querySelector('[data-stage-fill="block0"]'),
           block1: document.querySelector('[data-stage-fill="block1"]')
+        },
+        stageFlags: {
+          practice: document.querySelector('[data-stage-flag="practice"]'),
+          block0: document.querySelector('[data-stage-flag="block0"]'),
+          block1: document.querySelector('[data-stage-flag="block1"]')
         }
       };
     }
@@ -1057,6 +1158,7 @@
         state.timerInterval = null;
       }
       state.lastRenderedSecond = null;
+      state.nextStageUploadAt = null;
     }
 
     function updateLiveTimerUI(force = false) {
@@ -1090,6 +1192,7 @@
       state.warningSecondPlayed = null;
       state.blockEnding = false;
       state.lastRenderedSecond = null;
+      state.nextStageUploadAt = performance.now() + CONFIG.stageUploadIntervalMs;
       state.timerInterval = setInterval(() => {
         if (state.phase !== 'trial' || state.blockEnding) return;
         const remainingMs = getRemainingMs();
@@ -1098,24 +1201,17 @@
           state.warningSecondPlayed = remainingSec;
           playWarningSound();
         }
+        if (performance.now() >= state.nextStageUploadAt) {
+          const activeStageKey = state.inPractice ? 'practice' : state.blockIndex;
+          queueStageUpload(activeStageKey);
+          state.nextStageUploadAt += CONFIG.stageUploadIntervalMs;
+        }
         updateLiveTimerUI();
         if (remainingMs <= 0) {
           state.waitingForResponse = false;
           endBlock();
         }
       }, 50);
-    }
-
-    function getMilestoneMessage(totalTrials) {
-      if (state.inPractice || state.feedbackMode === 'practice') return '';
-      const completed = state.trialIndex;
-      if (completed === 0 || completed % 20 !== 0) return '';
-      const remaining = totalTrials - completed;
-      const remainingPct = Math.round((remaining / totalTrials) * 100);
-      if (state.feedbackMode === 'numeric') {
-        return state.lang === 'zh' ? `还剩 ${remaining} 题` : `${remaining} trials remaining`;
-      }
-      return state.lang === 'zh' ? `还剩 ${remainingPct}%` : `${remainingPct}% remaining`;
     }
 
     function getElapsedMsForCurrentBlock() {
@@ -1244,12 +1340,16 @@
       consent.addEventListener('change', validate);
       lb.addEventListener('change', () => { state.joinLeaderboard = lb.checked; });
       validate();
-      btn.addEventListener('click', () => {
+      soundConsent.addEventListener('change', async () => {
+        state.soundEnabled = soundConsent.checked;
+        if (state.soundEnabled) await initAudio();
+      });
+      btn.addEventListener('click', async () => {
         state.nickname = nicknameInput.value.trim();
         state.participantId = pidInput.value.trim() || generateParticipantId();
         state.joinLeaderboard = lb.checked;
         state.soundEnabled = soundConsent.checked;
-        if (state.soundEnabled) initAudio();
+        if (state.soundEnabled) await initAudio();
         state.phase = 'practiceIntro';
         renderPracticeIntro();
       });
@@ -1372,7 +1472,7 @@
 
       const timerDisplay = displayMode === 'numeric'
         ? `<div class="completed-answer-top" data-countdown-shell><div class="done-number" id="timerNumber" style="color:${countdownColor}">${remainingText}</div><div class="total-number">${t('numericDisplay')}</div></div>`
-        : `<div class="feedback-panel" data-countdown-shell><div class="feedback-label">${state.lang === 'zh' ? '完成题数' : 'Complete'}</div><div class="progress-shell"><div class="progress-fill" id="timerFill" style="width:${progressPct}%; background: linear-gradient(90deg, #22c55e 0%, ${countdownColor} 100%);"></div></div></div>`;
+        : `<div class="feedback-panel" data-countdown-shell><div class="feedback-label">${state.lang === 'zh' ? '剩余时间' : 'Time Remaining'}</div><div class="progress-shell"><div class="progress-fill" id="timerFill" style="width:${progressPct}%; background: linear-gradient(90deg, #22c55e 0%, ${countdownColor} 100%);"></div></div></div>`;
 
       const statsSection = state.inputMode === 'touch'
         ? `<div class="mobile-stats"><span class="pill">${t('accuracy')}: ${acc}</span><span class="pill">${t('meanRT')}: ${meanRT}</span><span class="pill">${t('elapsed')}: <span id="elapsedValue">${elapsed}</span></span></div>`
@@ -1380,7 +1480,7 @@
 
       const instructionHtml = state.inputMode === 'touch'
         ? `<div class="trial-copy"><p class="muted">${t('touchHint')}</p></div>`
-        : `<div class="trial-copy"><p style="font-size: 1.4rem; font-weight: 800; color: #fbbf24; text-shadow: 0 0 16px rgba(251, 191, 36, 0.25); letter-spacing: 0.03em; line-height: 1.5;">${t('pressOpposite')}</p></div>`;
+        : `<div class="trial-copy"><p style="font-size: 1.4rem; font-weight: 800; color: #fbbf24; text-shadow: 0 0 16px rgba(251, 191, 36, 0.25); letter-spacing: 0.03em; line-height: 1.5; text-align: center;">${t('pressOpposite')}</p></div>`;
 
       const touchControls = state.inputMode === 'touch' ? `
             <div class="mobile-touchdock">
@@ -1457,13 +1557,17 @@
       });
       state.waitingForResponse = false;
       state.trialIndex += 1;
-      if (!state.inPractice && CONFIG.enableUpload && CONFIG.googleScriptUrl && state.trialIndex % CONFIG.autosaveEveryTrials === 0) {
-        uploadParticipantResults(true);
-      }
       setTimeout(nextTrial, CONFIG.interTrialMs);
     }
 
+    function isEditableTarget(target) {
+      if (!target) return false;
+      const tagName = (target.tagName || '').toLowerCase();
+      return tagName === 'input' || tagName === 'textarea' || target.isContentEditable;
+    }
+
     function handleKey(event) {
+      if (isEditableTarget(event.target)) return;
       const isArrowKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key);
       if (state.phase !== 'complete' && [...(isArrowKey ? [event.key] : []), ' '].includes(event.key)) {
         event.preventDefault();
@@ -1477,25 +1581,37 @@
       handleResponse(event.key, performance.now());
     }
 
-    function endBlock() {
+    async function endBlock() {
       if (state.blockEnding) return;
       state.blockEnding = true;
       stopStageTimer();
       if (state.inPractice) {
+        queueStageUpload('practice');
         state.betweenAfterPractice = true;
         state.phase = 'between';
         renderBetween();
+        launchConfetti();
         return;
       }
       if (state.blockIndex === 0) {
+        queueStageUpload(state.blockIndex);
         state.blockIndex = 1;
         state.betweenAfterPractice = false;
         state.phase = 'between';
         renderBetween();
+        launchConfetti();
       } else {
+        queueStageUpload(state.blockIndex);
         state.phase = 'complete';
+        state.uploadStatus = 'uploading';
+        state.leaderboardLoading = state.joinLeaderboard;
         renderComplete();
-        uploadParticipantResults(false);
+        launchConfetti();
+        finalizeSessionUploads().catch(() => {
+          state.uploadStatus = 'fail';
+          state.leaderboardLoading = false;
+          if (state.phase === 'complete') renderComplete();
+        });
       }
     }
 
@@ -1544,8 +1660,80 @@
       return state.results.filter((r) => r.participantId === state.participantId && r.sessionId === state.sessionId);
     }
 
-    function getPendingTrialRows() {
-      return getParticipantTrialRows().slice(state.uploadedTrialCount);
+    function getStageUploadKey(stageKey) {
+      return stageKey === 'practice' ? 'practice' : `block${stageKey}`;
+    }
+
+    function getStageRows(stageKey) {
+      if (stageKey === 'practice') {
+        return getParticipantTrialRows().filter((r) => r.practice);
+      }
+      return getParticipantTrialRows().filter((r) => !r.practice && Number(r.blockIndex) === Number(stageKey));
+    }
+
+    function getPendingStageRows(stageKey) {
+      const uploadKey = getStageUploadKey(stageKey);
+      const rows = getStageRows(stageKey);
+      return rows.slice(state.stageUploadMarkers[uploadKey] || 0);
+    }
+
+    function markStageUploaded(stageKey) {
+      const uploadKey = getStageUploadKey(stageKey);
+      state.stageUploadMarkers[uploadKey] = getStageRows(stageKey).length;
+      state.uploadedTrialCount = getParticipantTrialRows().length;
+    }
+
+    async function uploadStageWithRetry(stageKey, maxAttempts = 2) {
+      let lastOk = false;
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        lastOk = await uploadParticipantResults(true, stageKey, { attempt });
+        if (lastOk) return true;
+        await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+      }
+      return false;
+    }
+
+    async function flushStageIfNeeded(stageKey, maxAttempts = 3) {
+      const stageRows = getStageRows(stageKey);
+      if (!stageRows.length) return true;
+      if (!getPendingStageRows(stageKey).length) return true;
+      let lastOk = false;
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        if (!getPendingStageRows(stageKey).length) return true;
+        lastOk = await uploadParticipantResults(true, stageKey, { attempt, flush: true });
+        if (lastOk && !getPendingStageRows(stageKey).length) return true;
+        await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
+      }
+      return !getPendingStageRows(stageKey).length && lastOk;
+    }
+
+    function queueStageUpload(stageKey) {
+      state.uploadQueue = state.uploadQueue
+        .catch(() => null)
+        .then(() => uploadStageWithRetry(stageKey));
+      return state.uploadQueue;
+    }
+
+    async function finalizeSessionUploads() {
+      if (state.finalizingUploads) return false;
+      state.finalizingUploads = true;
+      try {
+        await state.uploadQueue.catch(() => null);
+        const stageKeys = ['practice', 0, 1];
+        for (const stageKey of stageKeys) {
+          if (!getStageRows(stageKey).length) continue;
+          const ok = await flushStageIfNeeded(stageKey, 3);
+          if (!ok) {
+            state.uploadStatus = 'fail';
+            state.leaderboardLoading = false;
+            if (state.phase === 'complete') renderComplete();
+            return false;
+          }
+        }
+        return await uploadParticipantResults(false, null, { summaryOnly: true });
+      } finally {
+        state.finalizingUploads = false;
+      }
     }
 
     function buildUploadPayload(isPartial, trialData) {
@@ -1563,7 +1751,7 @@
         practiceTrials: CONFIG.practiceTrials,
         blockTrials: CONFIG.blockTrials,
         partialSave: isPartial,
-        uploadMode: 'replace_all',
+        uploadMode: 'chunk',
         totalTrialCount: getParticipantTrialRows().length,
         numericSummary,
         barSummary,
@@ -1574,58 +1762,102 @@
 
     async function fetchLeaderboard() {
       if (!CONFIG.enableUpload || !CONFIG.googleScriptUrl) return;
+      state.leaderboardLoading = true;
+      if (state.phase === 'complete') renderComplete();
       try {
         const res = await fetch(`${CONFIG.googleScriptUrl}?mode=leaderboard`);
         if (!res.ok) return;
         const data = await res.json();
         state.leaderboard = Array.isArray(data.entries) ? data.entries : [];
-        if (state.phase === 'complete') renderComplete();
       } catch (e) {
+      } finally {
+        state.leaderboardLoading = false;
+        if (state.phase === 'complete') renderComplete();
       }
     }
 
-    async function uploadParticipantResults(isPartial = false) {
+    async function uploadParticipantResults(isPartial = false, stageKey = null, options = {}) {
       if (!CONFIG.enableUpload || !CONFIG.googleScriptUrl) {
         state.uploadStatus = 'not_connected';
         if (state.phase === 'complete') renderComplete();
-        return;
+        return true;
       }
 
-      const participantRows = getParticipantTrialRows();
+      const summaryOnly = !!options.summaryOnly;
+      const stageRows = summaryOnly
+        ? []
+        : (stageKey === null ? getParticipantTrialRows() : getPendingStageRows(stageKey));
 
+      if (!summaryOnly && !stageRows.length) {
+        if (!isPartial && state.phase === 'complete') renderComplete();
+        return true;
+      }
+
+      let uploadOk = false;
       try {
-        const payload = buildUploadPayload(isPartial, participantRows);
+        const payload = buildUploadPayload(isPartial, stageRows);
         const res = await fetch(CONFIG.googleScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
         const data = await res.json().catch(() => null);
-        const uploadOk = res.ok && data && data.status === 'ok';
-
-        if (uploadOk) {
-          state.uploadedTrialCount = participantRows.length;
-          state.uploadStatus = 'success';
-        } else {
-          state.uploadStatus = 'fail';
-        }
+        uploadOk = res.ok && data && data.status === 'ok';
       } catch (e) {
-        state.uploadStatus = 'fail';
+        uploadOk = false;
+      }
+
+      if (uploadOk) {
+        if (!summaryOnly && stageKey !== null) {
+          markStageUploaded(stageKey);
+        } else if (!summaryOnly) {
+          state.uploadedTrialCount = getParticipantTrialRows().length;
+        }
+        if (!isPartial) state.uploadStatus = 'success';
+      } else {
+        if (!isPartial) state.uploadStatus = 'fail';
       }
 
       if (!isPartial && state.uploadStatus === 'success') await fetchLeaderboard();
-      if (state.phase === 'complete') renderComplete();
+      if (!isPartial && state.phase === 'complete') renderComplete();
+      return uploadOk;
     }
 
     function uploadMessage() {
-      if (state.uploadStatus === 'success') return `<span class="success">${t('uploadStatusSuccess')}</span>`;
+      if (state.uploadStatus === 'uploading') return `<span class="warning upload-emphasis">${t('uploadStatusUploading')}</span>`;
+      if (state.uploadStatus === 'success') {
+        if (state.joinLeaderboard && state.leaderboardLoading) {
+          return `<span class="warning">${t('uploadStatusLeaderboard')}</span>`;
+        }
+        return `<span class="success">${t('uploadStatusSuccess')}</span>`;
+      }
       if (state.uploadStatus === 'fail') return `<span class="warning">${t('uploadStatusFail')}</span>`;
-      return `<span class="muted">${t('uploadStatusReady')}</span>`;
+      if (state.uploadStatus === 'not_connected') return `<span class="muted">${t('uploadStatusReady')}</span>`;
+      return '';
     }
 
     function leaderboardHtml() {
       if (!state.joinLeaderboard) return '';
       const rows = Array.isArray(state.leaderboard) ? state.leaderboard : [];
+      if (state.uploadStatus === 'uploading') {
+        return `
+          <div class="card leaderboard-panel">
+            <h3>${t('leaderboardTitle')}</h3>
+            <p class="muted">${t('leaderboardDesc')}</p>
+            <p class="warning upload-emphasis">${t('uploadStatusUploading')}</p>
+            <p class="muted">${t('leaderboardLoading')}</p>
+            <p class="leaderboard-rule"><strong>${t('leaderboardRuleTitle')}:</strong> ${t('leaderboardRule')}</p>
+          </div>`;
+      }
+      if (state.leaderboardLoading) {
+        return `
+          <div class="card leaderboard-panel">
+            <h3>${t('leaderboardTitle')}</h3>
+            <p class="muted">${t('leaderboardDesc')}</p>
+            <p class="muted">${t('leaderboardLoading')}</p>
+            <p class="leaderboard-rule"><strong>${t('leaderboardRuleTitle')}:</strong> ${t('leaderboardRule')}</p>
+          </div>`;
+      }
       if (!rows.length) {
         return `
           <div class="card leaderboard-panel">
@@ -1716,7 +1948,7 @@
             <p><strong>${t('device')}:</strong> ${state.deviceType}</p>
             <p><strong>${t('input')}:</strong> ${state.inputMode}</p>
             <p><strong>Sound:</strong> ${state.soundEnabled ? 'on' : 'off'}</p>
-            <p><strong>${t('uploaded')}:</strong> ${uploadMessage()}</p>
+            ${state.uploadStatus !== 'idle' ? `<p><strong>${t('uploaded')}:</strong> ${uploadMessage()}</p>` : ''}
             <p class="muted">${t('noOthers')}</p>
           </div>
           ${leaderboardHtml()}
@@ -1731,11 +1963,23 @@
     }
 
     window.addEventListener('keydown', handleKey);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && state.soundEnabled) initAudio();
+    });
+
+    window.addEventListener('focus', () => {
+      if (state.soundEnabled) initAudio();
+    });
+
     window.addEventListener('beforeunload', () => {
       if (CONFIG.enableUpload && CONFIG.googleScriptUrl && state.results.length > 0) {
-        const participantRows = getParticipantTrialRows();
-        if (!participantRows.length) return;
-        const payload = buildUploadPayload(true, participantRows);
+        const pendingRows = [
+          ...getPendingStageRows('practice'),
+          ...getPendingStageRows(0),
+          ...getPendingStageRows(1)
+        ];
+        if (!pendingRows.length) return;
+        const payload = buildUploadPayload(true, pendingRows);
         navigator.sendBeacon(
           CONFIG.googleScriptUrl,
           new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=utf-8' })
